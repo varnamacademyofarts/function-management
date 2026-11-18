@@ -30,7 +30,7 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--line);
   <div class="bottom"><button class="navbtn" data-page="settings">⚙ <span class="navtxt">Settings</span></button><button class="navbtn" id="logout">↪ <span class="navtxt">Logout</span></button></div>
  </aside>
  <main class="main">
-  <div class="top"><div><h1 id="pageTitle">Dashboard</h1><div class="sub" id="pageSub">Your function at a glance</div></div><div class="actions"><select id="activeEvent" style="min-width:190px"></select><button class="secondary" disabled title="Enabled in Stage 3B">＋ Add Function</button></div></div>
+  <div class="top"><div><h1 id="pageTitle">Dashboard</h1><div class="sub" id="pageSub">Your function at a glance</div></div><div class="actions"><select id="activeEvent" style="min-width:190px"></select><button id="addFunctionBtn" onclick="openFunctionForm()">＋ Add Function</button></div></div>
   <section id="page-dashboard">
    <div class="cards">
     <div class="card"><div class="metric-label">TOTAL INVITED</div><div class="metric" id="mInvited">0</div><div class="note">People across guest list</div></div>
@@ -42,15 +42,20 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--line);
     <div class="panel"><div class="panelhead"><h2>Function details</h2><button class="secondary small" disabled title="Editing will be enabled in Stage 3B">Read only</button></div><div id="eventSummary" class="muted">No function selected</div></div></div>
    <div class="panel"><div class="panelhead"><h2>Recent guests</h2><button class="secondary small" onclick="go('guests')">View all</button></div><div id="recentGuests"></div></div>
   </section>
-  <section id="page-events" class="hidden"><div class="panel"><div class="panelhead"><h2>Functions / Events</h2><button class="secondary" disabled title="Enabled in Stage 3B">＋ Add Function</button></div><div id="eventList"></div></div></section>
-  <section id="page-guests" class="hidden"><div class="panel"><div class="panelhead"><h2>Guest directory</h2><button class="secondary" disabled title="Enabled in Stage 3B">＋ Add Guest</button></div><div class="toolbar"><input id="guestSearch" placeholder="Search name, phone, location…" oninput="renderGuests()"><select id="guestFilter" onchange="renderGuests()"><option value="">All invitation status</option><option>Not Sent</option><option>Invited</option><option>Confirmed</option><option>Maybe</option><option>Declined</option></select><select id="groupFilter" onchange="renderGuests()"><option value="">All groups</option></select></div><div class="tablewrap"><table><thead><tr><th>Name / Group</th><th>Phone</th><th>Location</th><th>Persons</th><th>Status</th><th>Actions</th></tr></thead><tbody id="guestRows"></tbody></table></div></div></section>
-  <section id="page-expenses" class="hidden"><div class="panel"><div class="panelhead"><h2>Expense tracker</h2><button class="secondary" disabled title="Enabled in Stage 3B">＋ Add Expense</button></div><div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="metric-label">TOTAL SPENT</div><div class="metric" id="expenseTotal">₹0</div></div><div class="card"><div class="metric-label">BUDGET</div><div class="metric" id="budgetTotal">₹0</div></div><div class="card"><div class="metric-label">BALANCE</div><div class="metric" id="budgetBalance">₹0</div></div></div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Category</th><th>Description / Vendor</th><th>Amount</th><th>Actions</th></tr></thead><tbody id="expenseRows"></tbody></table></div></div></section>
+  <section id="page-events" class="hidden"><div class="panel"><div class="panelhead"><h2>Functions / Events</h2><button id="addFunctionBtnSecondary" onclick="openFunctionForm()">＋ Add Function</button></div><div id="eventList"></div></div></section>
+  <section id="page-guests" class="hidden"><div class="panel"><div class="panelhead"><h2>Guest directory</h2><button id="addGuestBtn" onclick="openGuestForm()">＋ Add Guest</button></div><div class="cards" style="grid-template-columns:repeat(3,1fr)">
+   <div class="card"><div class="metric-label">PHYSICAL INVITATIONS</div><div class="metric" id="physicalTotal">0</div></div>
+   <div class="card"><div class="metric-label">GIVEN</div><div class="metric" id="physicalGiven">0</div></div>
+   <div class="card"><div class="metric-label">NOT GIVEN</div><div class="metric" id="physicalPending">0</div></div>
+  </div>
+  <div class="toolbar"><select id="physicalFilter" onchange="renderGuests()"><option value="">All physical invitations</option><option>Given</option><option>Not Given</option></select><input id="guestSearch" placeholder="Search name, phone, location…" oninput="renderGuests()"><select id="guestFilter" onchange="renderGuests()"><option value="">All invitation status</option><option>Not Sent</option><option>Invited</option><option>Confirmed</option><option>Maybe</option><option>Declined</option></select><select id="groupFilter" onchange="renderGuests()"><option value="">All groups</option></select></div><div class="tablewrap"><table><thead><tr><th>Name / Group</th><th>Phone</th><th>Location</th><th>Persons</th><th>RSVP</th><th>Physical Invite</th><th>Actions</th></tr></thead><tbody id="guestRows"></tbody></table></div></div></section>
+  <section id="page-expenses" class="hidden"><div class="panel"><div class="panelhead"><h2>Expense tracker</h2><button id="addExpenseBtn" onclick="openExpenseForm()">＋ Add Expense</button></div><div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="metric-label">TOTAL SPENT</div><div class="metric" id="expenseTotal">₹0</div></div><div class="card"><div class="metric-label">BUDGET</div><div class="metric" id="budgetTotal">₹0</div></div><div class="card"><div class="metric-label">BALANCE</div><div class="metric" id="budgetBalance">₹0</div></div></div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Category</th><th>Description / Vendor</th><th>Amount</th><th>Actions</th></tr></thead><tbody id="expenseRows"></tbody></table></div></div></section>
   <section id="page-reports" class="hidden"><div class="panel"><h2>Reports & Export</h2><p class="muted">Download your selected function's guest list and expenses as CSV files that open in Excel.</p><div class="actions"><button onclick="exportGuests()">Export guest list CSV</button><button class="secondary" onclick="exportExpenses()">Export expenses CSV</button><button class="secondary" onclick="backupData()">Export function summary CSV</button></div><hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><h2>Function summary</h2><div id="reportSummary" style="margin-top:12px"></div></div></section>
   <section id="page-settings" class="hidden"><div class="panel"><h2>Account & connection</h2>
    <p class="muted">This website is connected to your Google Sheets database through the secure Apps Script API.</p>
    <div class="eventtile"><div><strong>Signed-in account</strong><small id="accountName">—</small></div><span class="pill yes" id="accountRole">—</span></div>
    <div class="eventtile"><div><strong>Data source</strong><small>Google Sheets · Server-side login · Six-hour session</small></div><span class="pill yes">Connected</span></div>
-   <p class="note" id="syncStatus">Data refreshes automatically every 30 seconds. Stage 3A is read-only; changes are not enabled until the secure record APIs are installed.</p>
+   <p class="note" id="syncStatus">Data refreshes automatically every 30 seconds. Stage 3B: record changes are saved to Google Sheets with server-side permissions. Deletes are not available.</p>
    <div class="actions"><button class="secondary" onclick="loadAppData(true)">Refresh data now</button></div>
   </div></section>
  </main>
@@ -73,190 +78,169 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--line);
 <div class="modal" id="modal"><div class="modalbox"><div class="modalhead"><h2 id="modalTitle">Add</h2><button class="close" onclick="closeModal()">✕</button></div><div id="modalBody"></div></div></div><div class="toast" id="toast"></div>
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbzlY2BhSRmQ6FJTzqW384vTKgT_aU_k8kueMFyOJeWLIYL1cHPZeJHUFJUWn4mgY784ug/exec";
-const TOKEN_KEY = "fm_server_session_v1";
-let db = {events:[], guests:[], expenses:[], settings:{}};
-let activeId = null;
-let currentUser = null;
-let accessInfo = null;
-let refreshTimer = null;
-let isLoading = false;
-const $ = id => document.getElementById(id);
-const money = n => '₹' + Number(n || 0).toLocaleString('en-IN',{maximumFractionDigits:2});
-const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function toast(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2800)}
-async function api(action, extra={}) {
-  const response = await fetch(API_URL, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({action, ...extra})
-  });
-  if(!response.ok) throw new Error('Server returned HTTP ' + response.status);
-  const result = await response.json();
-  if(!result || typeof result !== 'object') throw new Error('Unexpected response from Apps Script.');
-  return result;
+const TOKEN_KEY="fm_server_session_v1";
+let db={events:[],guests:[],expenses:[],settings:{}},activeId=null,currentUser=null,accessInfo={},refreshTimer=null,isLoading=false;
+const $=id=>document.getElementById(id);
+const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',3000)}
+async function api(action,extra={}){
+ const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...extra})});
+ if(!r.ok)throw new Error('Server returned HTTP '+r.status);
+ const j=await r.json();if(!j||typeof j!=='object')throw new Error('Unexpected server response');return j;
 }
-function showLogin(message=''){
-  clearInterval(refreshTimer); refreshTimer=null;
-  $('app').style.display='none'; $('login').style.display='grid';
-  if(message) toast(message);
-}
-function setSignedInUser(user){
-  currentUser=user||{};
-  $('accountName').textContent=currentUser.username||'—';
-  $('accountRole').textContent=currentUser.role||'User';
-}
-$('loginForm').onsubmit = async e => {
-  e.preventDefault();
-  const button=e.target.querySelector('button');
-  button.disabled=true; button.textContent='Signing in…';
-  try {
-    const result=await api('login',{username:$('username').value.trim(),password:$('password').value});
-    if(!result.ok) throw new Error(result.error||'Login failed.');
-    if(!result.token) throw new Error('Login response did not contain a session token.');
-    sessionStorage.setItem(TOKEN_KEY,result.token);
-    $('password').value='';
-    setSignedInUser(result.user);
-    await loadAppData(false);
-    $('login').style.display='none'; $('app').style.display='block';
-    go('dashboard');
-    clearInterval(refreshTimer);
-    refreshTimer=setInterval(()=>loadAppData(false),30000);
-    toast('Signed in successfully');
-  } catch(err) {
-    sessionStorage.removeItem(TOKEN_KEY);
-    showLogin(err.message || 'Unable to sign in.');
-  } finally {
-    button.disabled=false; button.textContent='Login to dashboard';
-  }
+function token(){return sessionStorage.getItem(TOKEN_KEY)||''}
+function canEdit(id=activeId){return currentUser?.role==='Admin'||(accessInfo.functions||{})[String(id)]==='Edit'}
+function isAdmin(){return currentUser?.role==='Admin'}
+function showLogin(msg=''){clearInterval(refreshTimer);refreshTimer=null;$('app').style.display='none';$('login').style.display='grid';if(msg)toast(msg)}
+function setUser(u){currentUser=u||{};$('accountName').textContent=currentUser.username||'—';$('accountRole').textContent=currentUser.role||'User'}
+$('loginForm').onsubmit=async e=>{
+ e.preventDefault();const b=e.target.querySelector('button');b.disabled=true;b.textContent='Signing in…';
+ try{
+  const r=await api('login',{username:$('username').value.trim(),password:$('password').value});
+  if(!r.ok||!r.token)throw new Error(r.error||'Login failed');
+  sessionStorage.setItem(TOKEN_KEY,r.token);$('password').value='';setUser(r.user);
+  const loaded=await loadAppData(false,true);if(!loaded)throw new Error('Unable to load your Google Sheets data.');
+  $('login').style.display='none';$('app').style.display='block';go('dashboard');
+  refreshTimer=setInterval(()=>loadAppData(false),30000);toast('Signed in successfully');
+ }catch(err){sessionStorage.removeItem(TOKEN_KEY);showLogin(err.message)}
+ finally{b.disabled=false;b.textContent='Login to dashboard'}
 };
-$('logout').onclick=async()=>{
-  const token=sessionStorage.getItem(TOKEN_KEY);
-  sessionStorage.removeItem(TOKEN_KEY);
-  clearInterval(refreshTimer);refreshTimer=null;
-  try{if(token)await api('logout',{token})}catch(e){console.warn('Logout request:',e)}
-  db={events:[],guests:[],expenses:[],settings:{}};activeId=null;currentUser=null;
-  $('password').value='';showLogin('You have been logged out.');
-};
-async function loadAppData(showMessage=false){
-  if(isLoading)return;
-  const token=sessionStorage.getItem(TOKEN_KEY);
-  if(!token){showLogin();return}
-  isLoading=true;
-  try{
-    const result=await api('getAppData',{token});
-    if(!result.ok) throw new Error(result.error||'Could not load your data.');
-    const data=result.data||{};
-    db={
-      events:Array.isArray(data.events)?data.events:[],
-      guests:Array.isArray(data.guests)?data.guests:[],
-      expenses:Array.isArray(data.expenses)?data.expenses:[],
-      settings:{}
-    };
-    accessInfo=result.access||{};
-    setSignedInUser(result.user||currentUser);
-    if(!db.events.some(x=>String(x.id)===String(activeId)))activeId=db.events[0]?.id||null;
-    refresh();
-    const stamp='Last refreshed: '+new Date().toLocaleTimeString();
-    $('syncStatus').textContent=stamp+' · Automatic refresh every 30 seconds · Read-only Stage 3A';
-    if(showMessage)toast('Data refreshed from Google Sheets');
-  }catch(err){
-    if(/session expired|invalid session/i.test(err.message)){
-      sessionStorage.removeItem(TOKEN_KEY);showLogin('Your session has expired. Please sign in again.');
-    }else{
-      $('syncStatus').textContent='Connection error: '+err.message;
-      if(showMessage)toast('Refresh failed: '+err.message);
-      console.error(err);
-    }
-  }finally{isLoading=false}
+$('logout').onclick=async()=>{const t=token();sessionStorage.removeItem(TOKEN_KEY);clearInterval(refreshTimer);try{if(t)await api('logout',{token:t})}catch(e){}db={events:[],guests:[],expenses:[],settings:{}};currentUser=null;showLogin('You have been logged out.')};
+async function loadAppData(showMsg=false,strict=false){
+ if(isLoading)return false;const t=token();if(!t){showLogin();return false}isLoading=true;
+ try{
+  const r=await api('getAppData',{token:t});if(!r.ok)throw new Error(r.error||'Could not load data');
+  const d=r.data||{};db={events:Array.isArray(d.events)?d.events:[],guests:Array.isArray(d.guests)?d.guests:[],expenses:Array.isArray(d.expenses)?d.expenses:[],settings:{}};
+  accessInfo=r.access||{};setUser(r.user||currentUser);if(!db.events.some(x=>String(x.id)===String(activeId)))activeId=db.events[0]?.id||null;
+  refresh();$('syncStatus').textContent='Last refreshed: '+new Date().toLocaleTimeString()+' · Automatic refresh every 30 seconds · Server permissions active';
+  if(showMsg)toast('Data refreshed from Google Sheets');return true;
+ }catch(err){
+  $('syncStatus').textContent='Connection error: '+err.message;
+  if(/session expired|invalid session/i.test(err.message)){sessionStorage.removeItem(TOKEN_KEY);showLogin('Your session has expired. Please sign in again.')}
+  else if(showMsg)toast('Refresh failed: '+err.message);
+  console.error(err);if(strict)throw err;return false;
+ }finally{isLoading=false}
 }
-function showApp(){
-  $('login').style.display='none';$('app').style.display='block';
-  loadAppData(false).then(()=>{
-    if(sessionStorage.getItem(TOKEN_KEY)){
-      go('dashboard');
-      clearInterval(refreshTimer);
-      refreshTimer=setInterval(()=>loadAppData(false),30000);
-    }
-  });
-}
-const locationToken=new URLSearchParams(location.search).get('locationRequest');
-if(locationToken)showPublicLocationForm(locationToken,new URLSearchParams(location.search).get('endpoint'));
-else if(sessionStorage.getItem(TOKEN_KEY))showApp();
-
+function showApp(){ $('login').style.display='none';$('app').style.display='block';loadAppData(false,true).then(()=>{go('dashboard');refreshTimer=setInterval(()=>loadAppData(false),30000)}).catch(e=>showLogin(e.message))}
+if(new URLSearchParams(location.search).has('locationRequest'))showPublicLocationForm(new URLSearchParams(location.search).get('locationRequest'),new URLSearchParams(location.search).get('endpoint'));
+else if(token())showApp();
 document.querySelectorAll('.navbtn[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
 $('activeEvent').onchange=e=>{activeId=e.target.value;refresh()};
 function go(p){
-  document.querySelectorAll('.navbtn[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===p));
-  ['dashboard','events','guests','expenses','reports','settings'].forEach(x=>$('page-'+x).classList.toggle('hidden',x!==p));
-  const names={dashboard:['Dashboard','Your function at a glance'],events:['Functions / Events','View functions assigned to your account'],guests:['Guest List','View invitees, locations and attendance'],expenses:['Expenses','View vendors, payments and budget'],reports:['Reports & Export','Download your event records'],settings:['Settings','Account, permissions and connection status']};
-  $('pageTitle').textContent=names[p][0];$('pageSub').textContent=names[p][1];
-  if(p==='guests')renderGuests();if(p==='expenses')renderExpenses();if(p==='events')renderEvents();if(p==='reports')renderReport();
-  if(p==='settings'){ $('accountName').textContent=currentUser?.username||'—';$('accountRole').textContent=currentUser?.role||'User';}
+ document.querySelectorAll('.navbtn[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===p));
+ ['dashboard','events','guests','expenses','reports','settings'].forEach(x=>$('page-'+x).classList.toggle('hidden',x!==p));
+ const n={dashboard:['Dashboard','Your function at a glance'],events:['Functions / Events','Manage your functions'],guests:['Guest List','Guest details and physical invitation tracking'],expenses:['Expenses','Manage vendors, payments and budget'],reports:['Reports & Export','Download your event records'],settings:['Settings','Account, permissions and connection status']};
+ $('pageTitle').textContent=n[p][0];$('pageSub').textContent=n[p][1];
+ if(p==='settings'){ $('accountName').textContent=currentUser?.username||'—';$('accountRole').textContent=currentUser?.role||'User'}
+ if(p==='guests')renderGuests();if(p==='expenses')renderExpenses();if(p==='events')renderEvents();if(p==='reports')renderReport();
 }
-function currentEvent(){return db.events.find(x=>String(x.id)===String(activeId))||db.events[0]}
+function currentEvent(){return db.events.find(x=>String(x.id)===String(activeId))}
 function evGuests(){return db.guests.filter(x=>String(x.eventId)===String(activeId))}
 function evExpenses(){return db.expenses.filter(x=>String(x.eventId)===String(activeId))}
 function refresh(){
-  if(!db.events.some(x=>String(x.id)===String(activeId)))activeId=db.events[0]?.id||null;
-  $('activeEvent').innerHTML=db.events.length?db.events.map(e=>`<option value="${esc(e.id)}" ${String(e.id)===String(activeId)?'selected':''}>${esc(e.name)}</option>`).join(''):'<option value="">No functions assigned</option>';
-  renderDashboard();renderEvents();renderGuests();renderExpenses();renderReport();
+ $('activeEvent').innerHTML=db.events.length?db.events.map(e=>`<option value="${esc(e.id)}" ${String(e.id)===String(activeId)?'selected':''}>${esc(e.name)}</option>`).join(''):'<option value="">No functions assigned</option>';
+ $('addFunctionBtn').style.display=isAdmin()?'':'none';if($('addFunctionBtnSecondary'))$('addFunctionBtnSecondary').style.display=isAdmin()?'':'none';
+ $('addGuestBtn').style.display=canEdit()?'':'none';$('addExpenseBtn').style.display=canEdit()?'':'none';
+ renderDashboard();renderEvents();renderGuests();renderExpenses();renderReport();
 }
 function statusClass(s){return s==='Confirmed'?'yes':s==='Declined'?'no':s==='Maybe'?'maybe':''}
 function renderDashboard(){
-  let gs=evGuests(),ex=evExpenses(),people=gs.reduce((s,g)=>s+Number(g.persons||0),0),confirmed=gs.filter(g=>g.status==='Confirmed').reduce((s,g)=>s+Number(g.persons||0),0),spent=ex.reduce((s,x)=>s+Number(x.amount||0),0);
-  $('mInvited').textContent=people;$('mConfirmed').textContent=confirmed;$('mGuests').textContent=gs.length;$('mExpense').textContent=money(spent);$('rsvpTotal').textContent=gs.length+' records';
-  const statuses=['Not Sent','Invited','Confirmed','Maybe','Declined'];
-  $('rsvpBars').innerHTML=statuses.map(s=>{let n=gs.filter(g=>g.status===s).length,p=gs.length?n/gs.length*100:0;return `<div style="margin:12px 0"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span>${s}</span><b>${n}</b></div><div class="bar"><i style="width:${p}%"></i></div></div>`}).join('');
-  let e=currentEvent();$('eventSummary').innerHTML=e?`<b>${esc(e.name)}</b><p>${esc(e.type||'Function')} · ${esc(e.date||'Date not set')}</p><p>📍 ${esc(e.venue||'Venue not set')}</p><p>Budget: <b>${money(e.budget)}</b> · Spent: <b>${money(spent)}</b></p>${e.map?`<a class="link" target="_blank" rel="noopener" href="${esc(e.map)}">Open venue map ↗</a>`:''}`:'No function is assigned to this account.';
-  $('recentGuests').innerHTML=gs.slice(-5).reverse().map(g=>`<div class="eventtile"><div><strong>${esc(g.name)}</strong><small>${esc(g.group||'General')} · ${Number(g.persons||1)} person(s)</small></div><span class="pill ${statusClass(g.status)}">${esc(g.status||'Not Sent')}</span></div>`).join('')||'<div class="empty">No guests added yet.</div>';
+ const gs=evGuests(),ex=evExpenses(),people=gs.reduce((s,g)=>s+Number(g.persons||0),0),confirmed=gs.filter(g=>g.status==='Confirmed').reduce((s,g)=>s+Number(g.persons||0),0),spent=ex.reduce((s,x)=>s+Number(x.amount||0),0);
+ $('mInvited').textContent=people;$('mConfirmed').textContent=confirmed;$('mGuests').textContent=gs.length;$('mExpense').textContent=money(spent);$('rsvpTotal').textContent=gs.length+' records';
+ const statuses=['Not Sent','Invited','Confirmed','Maybe','Declined'];
+ $('rsvpBars').innerHTML=statuses.map(s=>{let n=gs.filter(g=>g.status===s).length,p=gs.length?n/gs.length*100:0;return `<div style="margin:12px 0"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span>${s}</span><b>${n}</b></div><div class="bar"><i style="width:${p}%"></i></div></div>`}).join('');
+ const e=currentEvent();$('eventSummary').innerHTML=e?`<b>${esc(e.name)}</b><p>${esc(e.type||'Function')} · ${esc(e.date||'Date not set')}</p><p>📍 ${esc(e.venue||'Venue not set')}</p><p>Budget: <b>${money(e.budget)}</b> · Spent: <b>${money(spent)}</b></p>${e.map?`<a class="link" target="_blank" rel="noopener" href="${esc(e.map)}">Open venue map ↗</a>`:''}`:'No function selected.';
+ $('recentGuests').innerHTML=gs.slice(-5).reverse().map(g=>`<div class="eventtile"><div><strong>${esc(g.name)}</strong><small>${esc(g.group||'General')} · ${Number(g.persons||1)} person(s)</small></div><span class="pill ${g.physicalInvitationStatus==='Given'?'yes':'maybe'}">${esc(g.physicalInvitationStatus||'Not Given')}</span></div>`).join('')||'<div class="empty">No guests added yet.</div>';
 }
 function renderEvents(){
-  $('eventList').innerHTML=db.events.map(e=>`<div class="eventtile"><div><strong>${esc(e.name)} <span class="pill">${esc(e.type||'Event')}</span></strong><small>${esc(e.date||'Date not set')} · ${esc(e.venue||'Venue not set')}</small></div><div class="actions"><button class="secondary small" onclick="selectEvent('${esc(e.id)}')">Open</button></div></div>`).join('')||'<div class="empty">No functions assigned. Contact your administrator.</div>';
+ $('eventList').innerHTML=db.events.map(e=>`<div class="eventtile"><div><strong>${esc(e.name)} <span class="pill">${esc(e.type||'Event')}</span></strong><small>${esc(e.date||'Date not set')} · ${esc(e.venue||'Venue not set')}</small></div><div class="actions"><button class="secondary small" onclick="selectEvent('${esc(e.id)}')">Open</button>${isAdmin()?`<button class="secondary small" onclick="openFunctionForm('${esc(e.id)}')">Edit</button><button class="danger small" onclick="deleteRecord('function','${esc(e.id)}')">Delete</button>`:''}</div></div>`).join('')||'<div class="empty">No functions assigned. Contact your administrator.</div>';
 }
 function selectEvent(id){activeId=id;refresh();go('dashboard')}
 function renderGuests(){
-  if(!$('guestRows'))return;
-  const q=($('guestSearch')?.value||'').toLowerCase(),f=$('guestFilter')?.value||'',group=$('groupFilter')?.value||'',gs=evGuests();
-  const groups=[...new Set(gs.map(g=>g.group||'General'))];
-  $('groupFilter').innerHTML='<option value="">All groups</option>'+groups.map(g=>`<option ${group===g?'selected':''}>${esc(g)}</option>`).join('');
-  const rows=gs.filter(g=>(!q||[g.name,g.phone,g.location,g.group].join(' ').toLowerCase().includes(q))&&(!f||g.status===f)&&(!group||g.group===group));
-  $('guestRows').innerHTML=rows.map(g=>`<tr><td><b>${esc(g.name)}</b><br><span class="muted">${esc(g.group||'General')}</span></td><td>${g.phone?`<a class="link" href="tel:${esc(g.phone)}">${esc(g.phone)}</a>`:'—'}</td><td>${esc(g.location||'—')} ${g.map?`<a class="link" target="_blank" rel="noopener" href="${esc(g.map)}">Map ↗</a>`:''}</td><td>${Number(g.persons||1)}</td><td><span class="pill ${statusClass(g.status)}">${esc(g.status||'Not Sent')}</span></td><td><button class="secondary small" onclick="inviteWA('${esc(g.id)}')">WhatsApp</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">No matching guests.</td></tr>';
+ if(!$('guestRows'))return;const q=($('guestSearch')?.value||'').toLowerCase(),f=$('guestFilter')?.value||'',group=$('groupFilter')?.value||'',physical=$('physicalFilter')?.value||'',gs=evGuests();
+ const given=gs.filter(g=>(g.physicalInvitationStatus||'Not Given')==='Given').length;
+ $('physicalTotal').textContent=gs.length;$('physicalGiven').textContent=given;$('physicalPending').textContent=gs.length-given;
+ const groups=[...new Set(gs.map(g=>g.group||'General'))];$('groupFilter').innerHTML='<option value="">All groups</option>'+groups.map(g=>`<option ${group===g?'selected':''}>${esc(g)}</option>`).join('');
+ const rows=gs.filter(g=>(!q||[g.name,g.phone,g.location,g.group].join(' ').toLowerCase().includes(q))&&(!f||g.status===f)&&(!group||g.group===group)&&(!physical||(g.physicalInvitationStatus||'Not Given')===physical));
+ $('guestRows').innerHTML=rows.map(g=>{
+  const p=g.physicalInvitationStatus||'Not Given',can=canEdit(g.eventId);
+  const phys=can?`<button class="small ${p==='Given'?'secondary':''}" onclick="setPhysical('${esc(g.id)}','${p==='Given'?'Not Given':'Given'}')">${p==='Given'?'Mark Not Given':'Mark Given'}</button>`:`<span class="pill ${p==='Given'?'yes':'maybe'}">${p}</span>`;
+  const rsvp=isAdmin()?`<select style="min-width:105px" onchange="setRsvp('${esc(g.id)}',this.value)">${['Not Sent','Invited','Confirmed','Maybe','Declined'].map(s=>`<option ${g.status===s?'selected':''}>${s}</option>`).join('')}</select>`:`<span class="pill ${statusClass(g.status)}">${esc(g.status||'Not Sent')}</span>`;
+  const actions=`${can?`<button class="secondary small" onclick="openGuestForm('${esc(g.id)}')">Edit</button>`:''}${isAdmin()&&g.phone?`<button class="secondary small" onclick="inviteWA('${esc(g.id)}')">WhatsApp</button>`:''}${isAdmin()?`<button class="danger small" onclick="deleteRecord('guest','${esc(g.id)}')">Delete</button>`:''}`;
+  return `<tr><td><b>${esc(g.name)}</b><br><span class="muted">${esc(g.group||'General')}</span></td><td>${g.phone?`<a class="link" href="tel:${esc(g.phone)}">${esc(g.phone)}</a>`:'—'}</td><td>${esc(g.location||'—')} ${g.map?`<a class="link" target="_blank" rel="noopener" href="${esc(g.map)}">Map ↗</a>`:''}</td><td>${Number(g.persons||1)}</td><td>${rsvp}</td><td>${phys}<br><small class="muted">${p==='Given'?esc(g.physicalInvitationGivenDate||'')+' · '+esc(g.physicalInvitationGivenBy||''):''}</small></td><td>${actions||'—'}</td></tr>`;
+ }).join('')||'<tr><td colspan="7" class="empty">No matching guests.</td></tr>';
+}
+async function setPhysical(id,status){
+ try{const r=await api('setPhysicalInvitation',{token:token(),guestId:id,status});if(!r.ok)throw new Error(r.error);await loadAppData(false);toast('Physical invitation status updated')}
+ catch(e){toast(e.message)}
+}
+async function setRsvp(id,status){
+ if(!isAdmin())return;const g=db.guests.find(x=>String(x.id)===String(id));if(!g)return;
+ try{const r=await api('saveGuest',{token:token(),record:{...g,status}});if(!r.ok)throw new Error(r.error);await loadAppData(false);toast('RSVP updated')}
+ catch(e){toast(e.message);renderGuests()}
 }
 function inviteWA(id){
-  const g=db.guests.find(x=>String(x.id)===String(id)),e=currentEvent();if(!g)return;
-  if(!g.phone){toast('No phone number is available for this guest.');return}
-  const msg=`Dear ${g.name}, we are happy to invite you to ${e?.name||'our function'}${e?.date?' on '+e.date:''}${e?.venue?' at '+e.venue:''}. We look forward to seeing you!`;
-  window.open('https://wa.me/'+g.phone.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank','noopener');
+ if(!isAdmin())return;const g=db.guests.find(x=>String(x.id)===String(id)),e=currentEvent();if(!g?.phone)return;
+ const msg=`Dear ${g.name}, we are happy to invite you to ${e?.name||'our function'}${e?.date?' on '+e.date:''}${e?.venue?' at '+e.venue:''}. We look forward to seeing you!`;
+ window.open('https://wa.me/'+g.phone.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank','noopener');
 }
 function renderExpenses(){
-  if(!$('expenseRows'))return;
-  const ex=evExpenses(),total=ex.reduce((s,x)=>s+Number(x.amount||0),0),budget=Number(currentEvent()?.budget||0);
-  $('expenseTotal').textContent=money(total);$('budgetTotal').textContent=money(budget);$('budgetBalance').textContent=money(budget-total);
-  $('expenseRows').innerHTML=ex.map(x=>`<tr><td>${esc(x.date||'—')}</td><td>${esc(x.category||'—')}</td><td>${esc(x.description||'—')}</td><td><b>${money(x.amount)}</b></td><td><span class="muted">Read only</span></td></tr>`).join('')||'<tr><td colspan="5" class="empty">No expenses recorded.</td></tr>';
+ const ex=evExpenses(),total=ex.reduce((s,x)=>s+Number(x.amount||0),0),budget=Number(currentEvent()?.budget||0);
+ $('expenseTotal').textContent=money(total);$('budgetTotal').textContent=money(budget);$('budgetBalance').textContent=money(budget-total);
+ $('expenseRows').innerHTML=ex.map(x=>`<tr><td>${esc(x.date||'—')}</td><td>${esc(x.category||'—')}</td><td>${esc(x.description||'—')}</td><td><b>${money(x.amount)}</b></td><td>${canEdit(x.eventId)?`<button class="secondary small" onclick="openExpenseForm('${esc(x.id)}')">Edit</button>`:''}${isAdmin()?`<button class="danger small" onclick="deleteRecord('expense','${esc(x.id)}')">Delete</button>`:''}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">No expenses recorded.</td></tr>';
 }
-function csv(rows,name){
-  const content=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+content],{type:'text/csv;charset=utf-8'}));a.download=name;a.click();URL.revokeObjectURL(a.href);
+function openModal(title,html){$('modalTitle').textContent=title;$('modalBody').innerHTML=html;$('modal').classList.add('show')}
+function closeModal(){$('modal').classList.remove('show')}
+function field(label,id,value='',type='text',wide=false){return `<div class="field ${wide?'wide':''}"><label>${label}</label><input id="${id}" type="${type}" value="${esc(value)}"></div>`}
+function openFunctionForm(id=''){
+ if(!isAdmin())return;const x=db.events.find(v=>String(v.id)===String(id))||{};
+ openModal(id?'Edit Function':'Add Function',`<form id="recordForm"><div class="formgrid">
+ ${field('FUNCTION NAME *','fName',x.name||'')}${field('TYPE','fType',x.type||'Wedding')}
+ ${field('DATE','fDate',x.date||'','date')}${field('TIME','fTime',x.time||'','time')}
+ ${field('VENUE / HALL','fVenue',x.venue||'')}${field('VENUE ADDRESS','fLocation',x.location||'')}
+ ${field('MAP LINK','fMap',x.map||'','url',true)}${field('CONTACT PERSON','fContact',x.contact||'')}
+ ${field('CONTACT PHONE','fPhone',x.phone||'','tel')}${field('BUDGET','fBudget',x.budget||0,'number')}
+ <div class="field wide"><label>NOTES</label><textarea id="fNotes">${esc(x.notes||'')}</textarea></div></div><div class="formactions"><button type="button" class="secondary" onclick="closeModal()">Cancel</button><button>Save Function</button></div></form>`);
+ $('recordForm').onsubmit=async e=>{e.preventDefault();await saveRecord('saveFunction',{id:x.id||'',name:$('fName').value,type:$('fType').value,date:$('fDate').value,time:$('fTime').value,venue:$('fVenue').value,location:$('fLocation').value,map:$('fMap').value,contact:$('fContact').value,phone:$('fPhone').value,budget:$('fBudget').value,notes:$('fNotes').value})};
 }
-function exportGuests(){const gs=evGuests();csv([['Name','Phone','Location','Map link','Persons','Group','Status','Invitation date','Notes'],...gs.map(g=>[g.name,g.phone,g.location,g.map,g.persons,g.group,g.status,g.inviteDate,g.notes])],'guest-list.csv')}
+function openGuestForm(id=''){
+ const x=db.guests.find(v=>String(v.id)===String(id))||{};if(!canEdit(x.eventId||activeId))return;
+ openModal(id?'Edit Guest':'Add Guest',`<form id="recordForm"><div class="formgrid">
+ <div class="field wide"><label>FUNCTION *</label><select id="gEvent">${db.events.map(e=>`<option value="${esc(e.id)}" ${String(e.id)===String(x.eventId||activeId)?'selected':''}>${esc(e.name)}</option>`).join('')}</select></div>
+ ${field('GUEST NAME *','gName',x.name||'')}${field('PHONE','gPhone',x.phone||'','tel')}
+ ${field('LOCATION / ADDRESS','gLocation',x.location||'')}${field('MAP LINK','gMap',x.map||'','url')}
+ ${field('NUMBER OF PERSONS','gPersons',x.persons||1,'number')}${field('RELATIONSHIP / GROUP','gGroup',x.group||'')}
+ <div class="field wide"><label>NOTES</label><textarea id="gNotes">${esc(x.notes||'')}</textarea></div></div><div class="formactions"><button type="button" class="secondary" onclick="closeModal()">Cancel</button><button>Save Guest</button></div></form>`);
+ $('recordForm').onsubmit=async e=>{e.preventDefault();await saveRecord('saveGuest',{id:x.id||'',eventId:$('gEvent').value,name:$('gName').value,phone:$('gPhone').value,location:$('gLocation').value,map:$('gMap').value,persons:$('gPersons').value,group:$('gGroup').value,notes:$('gNotes').value,status:x.status||'Not Sent'})};
+}
+function openExpenseForm(id=''){
+ const x=db.expenses.find(v=>String(v.id)===String(id))||{};if(!canEdit(x.eventId||activeId))return;
+ openModal(id?'Edit Expense':'Add Expense',`<form id="recordForm"><div class="formgrid">
+ <div class="field wide"><label>FUNCTION *</label><select id="eEvent">${db.events.map(e=>`<option value="${esc(e.id)}" ${String(e.id)===String(x.eventId||activeId)?'selected':''}>${esc(e.name)}</option>`).join('')}</select></div>
+ ${field('DATE','eDate',x.date||'','date')}${field('CATEGORY','eCategory',x.category||'')}
+ ${field('DESCRIPTION / VENDOR','eDescription',x.description||'')}${field('AMOUNT *','eAmount',x.amount||0,'number')}
+ <div class="field wide"><label>NOTES</label><textarea id="eNotes">${esc(x.notes||'')}</textarea></div></div><div class="formactions"><button type="button" class="secondary" onclick="closeModal()">Cancel</button><button>Save Expense</button></div></form>`);
+ $('recordForm').onsubmit=async e=>{e.preventDefault();await saveRecord('saveExpense',{id:x.id||'',eventId:$('eEvent').value,date:$('eDate').value,category:$('eCategory').value,description:$('eDescription').value,amount:$('eAmount').value,notes:$('eNotes').value})};
+}
+async function saveRecord(action,record){
+ try{const r=await api(action,{token:token(),record});if(!r.ok)throw new Error(r.error||'Save failed');closeModal();await loadAppData(false);toast('Saved successfully')}
+ catch(e){toast(e.message)}
+}
+async function deleteRecord(recordType,id){
+ if(!isAdmin())return;
+ const label=recordType==='function'?'function':recordType==='guest'?'guest':'expense';
+ if(!confirm('Delete this '+label+' record? This action cannot be undone.'))return;
+ try{const r=await api('deleteRecord',{token:token(),recordType,id});if(!r.ok)throw new Error(r.error||'Delete failed');await loadAppData(false);toast('Record deleted')}
+ catch(e){toast(e.message)}
+}
+function csv(rows,name){const content=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+content],{type:'text/csv;charset=utf-8'}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
+function exportGuests(){csv([['Name','Phone','Location','Map link','Persons','Group','RSVP','Physical invitation','Given date','Given by','Notes'],...evGuests().map(g=>[g.name,g.phone,g.location,g.map,g.persons,g.group,g.status,g.physicalInvitationStatus,g.physicalInvitationGivenDate,g.physicalInvitationGivenBy,g.notes])],'guest-list.csv')}
 function exportExpenses(){csv([['Date','Category','Description','Amount','Notes'],...evExpenses().map(x=>[x.date,x.category,x.description,x.amount,x.notes])],'function-expenses.csv')}
-function backupData(){csv([['Function ID','Function','Type','Date','Venue'],...db.events.map(e=>[e.id,e.name,e.type,e.date,e.venue])],'functions-summary.csv');toast('Function summary exported. Use the other CSV exports for guest and expense details.')}
-function renderReport(){
-  const e=currentEvent(),gs=evGuests(),ex=evExpenses(),people=gs.reduce((s,g)=>s+Number(g.persons||0),0),confirmed=gs.filter(g=>g.status==='Confirmed').reduce((s,g)=>s+Number(g.persons||0),0),spent=ex.reduce((s,x)=>s+Number(x.amount||0),0);
-  $('reportSummary').innerHTML=e?`<p><b>${esc(e.name)}</b> · ${esc(e.date||'Date not set')}</p><p>Guest records: <b>${gs.length}</b> · Invited persons: <b>${people}</b> · Confirmed persons: <b>${confirmed}</b></p><p>Budget: <b>${money(e.budget)}</b> · Spent: <b>${money(spent)}</b> · Balance: <b>${money(Number(e.budget||0)-spent)}</b></p>`:'No function selected.';
-}
-function showPublicLocationForm(token,endpoint){
-  $('login').style.display='none';$('app').style.display='none';$('publicLocation').style.display='grid';
-  $('publicLocationForm').onsubmit=async ev=>{
-    ev.preventDefault();const mapLink=$('responseMap').value.trim(),address=$('responseAddress').value.trim();
-    if(!/^https?:\/\//i.test(mapLink)){toast('Please enter a valid map link');return}
-    const btn=ev.target.querySelector('button');btn.disabled=true;btn.textContent='Submitting…';
-    try{
-      if(!endpoint)throw new Error('Location form is not connected. Please contact the event organiser.');
-      const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'location',token,mapLink,address})});
-      const out=await res.json();if(!out.ok)throw new Error(out.error||'Unable to save location');
-      $('publicLocationForm').style.display='none';$('locationResult').textContent='Thank you! Your location has been submitted successfully.';
-    }catch(err){$('locationResult').textContent=err.message;btn.disabled=false;btn.textContent='Submit location'}
-  };
+function backupData(){csv([['Function ID','Function','Type','Date','Venue'],...db.events.map(e=>[e.id,e.name,e.type,e.date,e.venue])],'functions-summary.csv')}
+function renderReport(){const e=currentEvent(),gs=evGuests(),ex=evExpenses(),given=gs.filter(g=>g.physicalInvitationStatus==='Given').length,spent=ex.reduce((s,x)=>s+Number(x.amount||0),0);$('reportSummary').innerHTML=e?`<p><b>${esc(e.name)}</b> · ${esc(e.date||'Date not set')}</p><p>Guest records: <b>${gs.length}</b> · Physical invitations given: <b>${given}</b> · Pending: <b>${gs.length-given}</b></p><p>Budget: <b>${money(e.budget)}</b> · Spent: <b>${money(spent)}</b> · Balance: <b>${money(Number(e.budget||0)-spent)}</b></p>`:'No function selected.'}
+async function showPublicLocationForm(tok,endpoint){
+ $('login').style.display='none';$('app').style.display='none';$('publicLocation').style.display='grid';
+ $('publicLocationForm').onsubmit=async ev=>{ev.preventDefault();const mapLink=$('responseMap').value.trim(),address=$('responseAddress').value.trim();if(!/^https?:\/\//i.test(mapLink)){toast('Enter a valid map link');return}const b=ev.target.querySelector('button');b.disabled=true;b.textContent='Submitting…';try{if(!endpoint)throw new Error('Location form is not connected. Contact the organiser.');const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'location',token:tok,mapLink,address})});const out=await r.json();if(!out.ok)throw new Error(out.error||'Unable to save location');$('publicLocationForm').style.display='none';$('locationResult').textContent='Thank you! Your location has been submitted successfully.'}catch(err){$('locationResult').textContent=err.message;b.disabled=false;b.textContent='Submit location'}}
 }
 </script></body></html>
