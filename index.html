@@ -102,7 +102,7 @@ $('loginForm').onsubmit=async e=>{
   sessionStorage.setItem(TOKEN_KEY,r.token);$('password').value='';setUser(r.user);
   const loaded=await loadAppData(false,true);if(!loaded)throw new Error('Unable to load your Google Sheets data.');
   $('login').style.display='none';$('app').style.display='block';go('dashboard');
-  refreshTimer=setInterval(()=>loadAppData(false),30000);toast('Signed in successfully');
+  refreshTimer=setInterval(()=>{if(document.visibilityState==='visible')loadAppData(false)},120000);toast('Signed in successfully');
  }catch(err){sessionStorage.removeItem(TOKEN_KEY);showLogin(err.message)}
  finally{b.disabled=false;b.textContent='Login to dashboard'}
 };
@@ -113,7 +113,7 @@ async function loadAppData(showMsg=false,strict=false){
   const r=await api('getAppData',{token:t});if(!r.ok)throw new Error(r.error||'Could not load data');
   const d=r.data||{};db={events:Array.isArray(d.events)?d.events:[],guests:Array.isArray(d.guests)?d.guests:[],expenses:Array.isArray(d.expenses)?d.expenses:[],settings:{}};
   accessInfo=r.access||{};setUser(r.user||currentUser);if(!db.events.some(x=>String(x.id)===String(activeId)))activeId=db.events[0]?.id||null;
-  refresh();$('syncStatus').textContent='Last refreshed: '+new Date().toLocaleTimeString()+' · Automatic refresh every 30 seconds · Server permissions active';
+  refresh();$('syncStatus').textContent='Last refreshed: '+new Date().toLocaleTimeString()+' · Auto refresh every 2 minutes · Use Refresh data now for immediate updates';
   if(showMsg)toast('Data refreshed from Google Sheets');return true;
  }catch(err){
   $('syncStatus').textContent='Connection error: '+err.message;
@@ -122,7 +122,7 @@ async function loadAppData(showMsg=false,strict=false){
   console.error(err);if(strict)throw err;return false;
  }finally{isLoading=false}
 }
-function showApp(){ $('login').style.display='none';$('app').style.display='block';loadAppData(false,true).then(()=>{go('dashboard');refreshTimer=setInterval(()=>loadAppData(false),30000)}).catch(e=>showLogin(e.message))}
+function showApp(){ $('login').style.display='none';$('app').style.display='block';loadAppData(false,true).then(()=>{go('dashboard');refreshTimer=setInterval(()=>{if(document.visibilityState==='visible')loadAppData(false)},120000)}).catch(e=>showLogin(e.message))}
 if(new URLSearchParams(location.search).has('locationRequest'))showPublicLocationForm(new URLSearchParams(location.search).get('locationRequest'),new URLSearchParams(location.search).get('endpoint'));
 else if(token())showApp();
 document.querySelectorAll('.navbtn[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
