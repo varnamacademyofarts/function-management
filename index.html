@@ -131,7 +131,7 @@ function exportExpenses(){csv([['Date','Category','Description','Amount','Notes'
 function backupData(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='function-manager-backup.json';a.click();URL.revokeObjectURL(a.href)}
 function renderReport(){let e=currentEvent(),gs=evGuests(),ex=evExpenses(),people=gs.reduce((s,g)=>s+Number(g.persons||0),0),confirmed=gs.filter(g=>g.status==='Confirmed').reduce((s,g)=>s+Number(g.persons||0),0),spent=ex.reduce((s,x)=>s+x.amount,0);$('reportSummary').innerHTML=e?`<p><b>${esc(e.name)}</b> · ${esc(e.date||'Date not set')}</p><p>Guest records: <b>${gs.length}</b> · Invited persons: <b>${people}</b> · Confirmed persons: <b>${confirmed}</b></p><p>Budget: <b>${money(e.budget)}</b> · Spent: <b>${money(spent)}</b> · Balance: <b>${money(Number(e.budget||0)-spent)}</b></p>`:'No function selected.'}
 
-async function requestLocation(id){
+async async function requestLocation(id){
  let g=db.guests.find(x=>x.id===id),e=currentEvent();
  if(!g)return;
  if(!g.phone){toast('Add a phone number first');return}
@@ -143,7 +143,7 @@ async function requestLocation(id){
  }catch(err){toast('Could not prepare location request. Check Google Sheets sync settings.');return}
  const base=location.href.split('?')[0].split('#')[0];
  const link=base+'?locationRequest='+encodeURIComponent(g.locationToken)+'&endpoint='+encodeURIComponent(db.settings.syncUrl);
- const msg=`Vanakkam ${g.name},\\n\\nWe are collecting guest location details for ${e?.name||'our function'}. Please click the link below and submit your Google Maps location link.\\n\\n${link}\\n\\nThank you!`;
+ const msg=`Vanakkam ${g.name},\n\nWe are collecting guest location details for ${e?.name||'our function'}. Please click the link below and submit your Google Maps location link.\n\n${link}\n\nThank you!`;
  window.open('https://wa.me/'+g.phone.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank');
 }
 function showPublicLocationForm(token,endpoint){
@@ -166,5 +166,3 @@ async function syncNow(){let url=db.settings.syncUrl,key=db.settings.syncKey;if(
 async function syncFromSheet(){let url=db.settings.syncUrl,key=db.settings.syncKey;if(!url){toast('Add your Google Apps Script URL first');return}try{$('syncStatus').textContent='Loading from Google Sheets…';let res=await fetch(url+'?key='+encodeURIComponent(key));let out=await res.json();if(!out.ok)throw Error(out.error||'Load failed');if(!confirm('Replace data in this browser with the latest Google Sheets backup?')){$('syncStatus').textContent='Load cancelled.';return}db=out.data||{events:[],guests:[],expenses:[],settings:{}};db.settings=db.settings||{};db.settings.syncUrl=url;db.settings.syncKey=key;localStorage.setItem(KEY,JSON.stringify(db));activeId=db.events[0]?.id||null;refresh();$('syncStatus').textContent='Loaded from Google Sheets: '+new Date().toLocaleString();toast('Data loaded')}catch(err){$('syncStatus').textContent='Load error: '+err.message+' — check deployment access and URL.';toast('Load failed')}}
 function changeLogin(){let u=$('newUser').value.trim(),p=$('newPass').value;if(!u||p.length<8){toast('Enter username and password (at least 8 characters)');return}credentials={user:u,pass:p};localStorage.setItem('fm_credentials',JSON.stringify(credentials));$('newUser').value='';$('newPass').value='';toast('Demo login updated')}
 </script></body></html>
-
-
