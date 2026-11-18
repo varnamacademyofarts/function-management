@@ -67,8 +67,20 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--line);
 <div class="modal" id="modal"><div class="modalbox"><div class="modalhead"><h2 id="modalTitle">Add</h2><button class="close" onclick="closeModal()">✕</button></div><div id="modalBody"></div></div></div><div class="toast" id="toast"></div>
 <script>
 const KEY='functionManager_v2', AUTH='fm_auth_v2';
-let db=JSON.parse(localStorage.getItem(KEY)||'null')||{events:[],guests:[],expenses:[],settings:{syncUrl:'',syncKey:''}};
-let activeId=db.events[0]?.id||null;
+let db;
+try {
+  db = JSON.parse(localStorage.getItem(KEY) || 'null');
+} catch (e) {
+  db = null;
+}
+// Normalize older or incomplete browser data before the app reads it.
+// This avoids a startup crash when an earlier version stored a different shape.
+if (!db || typeof db !== 'object' || Array.isArray(db)) db = {};
+if (!Array.isArray(db.events)) db.events = Array.isArray(db.functions) ? db.functions : [];
+if (!Array.isArray(db.guests)) db.guests = [];
+if (!Array.isArray(db.expenses)) db.expenses = [];
+if (!db.settings || typeof db.settings !== 'object') db.settings = {syncUrl:'',syncKey:''};
+let activeId=db.events.length ? (db.events[0].id || null) : null;
 let credentials=JSON.parse(localStorage.getItem('fm_credentials')||'null')||{user:'admin',pass:'invite123'};
 const $=id=>document.getElementById(id), money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2}), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function save(){localStorage.setItem(KEY,JSON.stringify(db));refresh()}
@@ -154,4 +166,3 @@ async function syncNow(){let url=db.settings.syncUrl,key=db.settings.syncKey;if(
 async function syncFromSheet(){let url=db.settings.syncUrl,key=db.settings.syncKey;if(!url){toast('Add your Google Apps Script URL first');return}try{$('syncStatus').textContent='Loading from Google Sheets…';let res=await fetch(url+'?key='+encodeURIComponent(key));let out=await res.json();if(!out.ok)throw Error(out.error||'Load failed');if(!confirm('Replace data in this browser with the latest Google Sheets backup?')){$('syncStatus').textContent='Load cancelled.';return}db=out.data||{events:[],guests:[],expenses:[],settings:{}};db.settings=db.settings||{};db.settings.syncUrl=url;db.settings.syncKey=key;localStorage.setItem(KEY,JSON.stringify(db));activeId=db.events[0]?.id||null;refresh();$('syncStatus').textContent='Loaded from Google Sheets: '+new Date().toLocaleString();toast('Data loaded')}catch(err){$('syncStatus').textContent='Load error: '+err.message+' — check deployment access and URL.';toast('Load failed')}}
 function changeLogin(){let u=$('newUser').value.trim(),p=$('newPass').value;if(!u||p.length<8){toast('Enter username and password (at least 8 characters)');return}credentials={user:u,pass:p};localStorage.setItem('fm_credentials',JSON.stringify(credentials));$('newUser').value='';$('newPass').value='';toast('Demo login updated')}
 </script></body></html>
-
