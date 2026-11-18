@@ -131,20 +131,29 @@ function exportExpenses(){csv([['Date','Category','Description','Amount','Notes'
 function backupData(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='function-manager-backup.json';a.click();URL.revokeObjectURL(a.href)}
 function renderReport(){let e=currentEvent(),gs=evGuests(),ex=evExpenses(),people=gs.reduce((s,g)=>s+Number(g.persons||0),0),confirmed=gs.filter(g=>g.status==='Confirmed').reduce((s,g)=>s+Number(g.persons||0),0),spent=ex.reduce((s,x)=>s+x.amount,0);$('reportSummary').innerHTML=e?`<p><b>${esc(e.name)}</b> · ${esc(e.date||'Date not set')}</p><p>Guest records: <b>${gs.length}</b> · Invited persons: <b>${people}</b> · Confirmed persons: <b>${confirmed}</b></p><p>Budget: <b>${money(e.budget)}</b> · Spent: <b>${money(spent)}</b> · Balance: <b>${money(Number(e.budget||0)-spent)}</b></p>`:'No function selected.'}
 
-async async function requestLocation(id){
+function requestLocation(id){
  let g=db.guests.find(x=>x.id===id),e=currentEvent();
  if(!g)return;
  if(!g.phone){toast('Add a phone number first');return}
  if(!db.settings.syncUrl){toast('Set up Google Sheets sync first to receive submitted locations');go('settings');return}
  if(!g.locationToken){g.locationToken=crypto.randomUUID()+crypto.randomUUID();save()}
- try{
-  const saved=await fetch(db.settings.syncUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({key:db.settings.syncKey,data:db})});
-  const result=await saved.json();if(!result.ok)throw new Error(result.error||'Could not save request');
- }catch(err){toast('Could not prepare location request. Check Google Sheets sync settings.');return}
- const base=location.href.split('?')[0].split('#')[0];
- const link=base+'?locationRequest='+encodeURIComponent(g.locationToken)+'&endpoint='+encodeURIComponent(db.settings.syncUrl);
- const msg=`Vanakkam ${g.name},\n\nWe are collecting guest location details for ${e?.name||'our function'}. Please click the link below and submit your Google Maps location link.\n\n${link}\n\nThank you!`;
- window.open('https://wa.me/'+g.phone.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank');
+ fetch(db.settings.syncUrl,{
+   method:'POST',
+   headers:{'Content-Type':'text/plain;charset=utf-8'},
+   body:JSON.stringify({key:db.settings.syncKey,data:db})
+ })
+ .then(response=>response.json())
+ .then(result=>{
+   if(!result.ok)throw new Error(result.error||'Could not save request');
+   const base=location.href.split('?')[0].split('#')[0];
+   const link=base+'?locationRequest='+encodeURIComponent(g.locationToken)+'&endpoint='+encodeURIComponent(db.settings.syncUrl);
+   const msg=`Vanakkam ${g.name},\n\nWe are collecting guest location details for ${e?.name||'our function'}. Please click the link below and submit your Google Maps location link.\n\n${link}\n\nThank you!`;
+   window.open('https://wa.me/'+g.phone.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank');
+ })
+ .catch(err=>{
+   toast('Could not prepare location request. Check Google Sheets sync settings.');
+   console.error('Location request error:',err);
+ });
 }
 function showPublicLocationForm(token,endpoint){
  $('login').style.display='none';$('app').style.display='none';$('publicLocation').style.display='grid';
