@@ -30,7 +30,7 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--line);
   <div class="bottom"><button class="navbtn" data-page="settings">⚙ <span class="navtxt">Settings</span></button><button class="navbtn" id="logout">↪ <span class="navtxt">Logout</span></button></div>
  </aside>
  <main class="main">
-  <div class="top"><div><h1 id="pageTitle">Dashboard</h1><div class="sub" id="pageSub">Your function at a glance</div></div><div class="actions"><select id="activeEvent" style="min-width:190px"></select><button id="addFunctionBtn" onclick="openFunctionForm()">＋ Add Function</button></div></div>
+  <div class="top"><div><h1 id="pageTitle">Dashboard</h1><div class="sub" id="pageSub">Your function at a glance</div></div><div class="actions"><select id="activeEvent" style="min-width:190px"></select></div></div>
   <section id="page-dashboard">
    <div class="cards">
     <div class="card"><div class="metric-label">TOTAL INVITED</div><div class="metric" id="mInvited">0</div><div class="note">People across guest list</div></div>
@@ -51,13 +51,29 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--line);
   <div class="toolbar"><select id="physicalFilter" onchange="renderGuests()"><option value="">All physical invitations</option><option>Given</option><option>Not Given</option></select><input id="guestSearch" placeholder="Search name, phone, location…" oninput="renderGuests()"><select id="guestFilter" onchange="renderGuests()"><option value="">All invitation status</option><option>Not Sent</option><option>Invited</option><option>Confirmed</option><option>Maybe</option><option>Declined</option></select><select id="groupFilter" onchange="renderGuests()"><option value="">All groups</option></select></div><div class="tablewrap"><table><thead><tr><th>Name / Group</th><th>Phone</th><th>Location</th><th>Persons</th><th>RSVP</th><th>Physical Invite</th><th>Actions</th></tr></thead><tbody id="guestRows"></tbody></table></div></div></section>
   <section id="page-expenses" class="hidden"><div class="panel"><div class="panelhead"><h2>Expense tracker</h2><button id="addExpenseBtn" onclick="openExpenseForm()">＋ Add Expense</button></div><div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="metric-label">TOTAL SPENT</div><div class="metric" id="expenseTotal">₹0</div></div><div class="card"><div class="metric-label">BUDGET</div><div class="metric" id="budgetTotal">₹0</div></div><div class="card"><div class="metric-label">BALANCE</div><div class="metric" id="budgetBalance">₹0</div></div></div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Category</th><th>Description / Vendor</th><th>Amount</th><th>Actions</th></tr></thead><tbody id="expenseRows"></tbody></table></div></div></section>
   <section id="page-reports" class="hidden"><div class="panel"><h2>Reports & Export</h2><p class="muted">Download your selected function's guest list and expenses as CSV files that open in Excel.</p><div class="actions"><button onclick="exportGuests()">Export guest list CSV</button><button class="secondary" onclick="exportExpenses()">Export expenses CSV</button><button class="secondary" onclick="backupData()">Export function summary CSV</button></div><hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><h2>Function summary</h2><div id="reportSummary" style="margin-top:12px"></div></div></section>
-  <section id="page-settings" class="hidden"><div class="panel"><h2>Account & connection</h2>
-   <p class="muted">This website is connected to your Google Sheets database through the secure Apps Script API.</p>
-   <div class="eventtile"><div><strong>Signed-in account</strong><small id="accountName">—</small></div><span class="pill yes" id="accountRole">—</span></div>
-   <div class="eventtile"><div><strong>Data source</strong><small>Google Sheets · Server-side login · Six-hour session</small></div><span class="pill yes">Connected</span></div>
-   <p class="note" id="syncStatus">Data refreshes automatically every 30 seconds. Stage 3B: record changes are saved to Google Sheets with server-side permissions. Deletes are not available.</p>
-   <div class="actions"><button class="secondary" onclick="loadAppData(true)">Refresh data now</button></div>
-  </div></section>
+  <section id="page-settings" class="hidden">
+   <div class="panel"><h2>Account & connection</h2>
+    <p class="muted">This website is connected to your Google Sheets database through the secure Apps Script API.</p>
+    <div class="eventtile"><div><strong>Signed-in account</strong><small id="accountName">—</small></div><span class="pill yes" id="accountRole">—</span></div>
+    <div class="eventtile"><div><strong>Data source</strong><small>Google Sheets · Server-side login · Six-hour session</small></div><span class="pill yes">Connected</span></div>
+    <p class="note" id="syncStatus">Data refreshes automatically every 2 minutes. Changes are saved to Google Sheets with server-side permissions.</p>
+    <div class="actions"><button class="secondary" onclick="loadAppData(true)">Refresh data now</button></div>
+   </div>
+   <div class="panel" id="userManagementPanel">
+    <div class="panelhead"><div><h2>User Management</h2><div class="note">Create Limited Users and assign access to individual functions.</div></div><button id="refreshUsersBtn" class="secondary small" onclick="loadUsers()">Refresh users</button></div>
+    <div id="userAdminOnly">
+     <form id="createUserForm" class="formgrid" style="max-width:760px">
+      <div class="field"><label>USERNAME *</label><input id="newUsername" required minlength="3" maxlength="40" pattern="[A-Za-z0-9._-]+" placeholder="e.g. staff01"></div>
+      <div class="field"><label>TEMPORARY PASSWORD *</label><input id="newUserPassword" type="password" required minlength="12" placeholder="At least 12 characters"></div>
+      <div class="wide actions" style="justify-content:flex-end;margin-bottom:16px"><button id="createUserSubmit">＋ Create Limited User</button></div>
+     </form>
+     <div class="note" style="margin:8px 0 14px">New users must be given their password securely. Minimum password length: 12 characters.</div>
+     <div class="tablewrap"><table style="min-width:850px"><thead><tr><th>User</th><th>Status</th><th>Created</th><th>Last login</th><th>Account action</th></tr></thead><tbody id="userRows"><tr><td colspan="5" class="empty">Loading users…</td></tr></tbody></table></div>
+     <div style="margin-top:22px"><h2>Function Access</h2><p class="note">Choose View, Edit or None for each Limited User and function. View users can still mark physical invitations Given / Not Given.</p><div id="userAccessEditor"></div></div>
+    </div>
+    <div id="userNoAccess" class="empty hidden">Only Admin users can manage accounts and function permissions.</div>
+   </div>
+  </section>
  </main>
 </div>
 
@@ -132,7 +148,7 @@ function go(p){
  ['dashboard','events','guests','expenses','reports','settings'].forEach(x=>$('page-'+x).classList.toggle('hidden',x!==p));
  const n={dashboard:['Dashboard','Your function at a glance'],events:['Functions / Events','Manage your functions'],guests:['Guest List','Guest details and physical invitation tracking'],expenses:['Expenses','Manage vendors, payments and budget'],reports:['Reports & Export','Download your event records'],settings:['Settings','Account, permissions and connection status']};
  $('pageTitle').textContent=n[p][0];$('pageSub').textContent=n[p][1];
- if(p==='settings'){ $('accountName').textContent=currentUser?.username||'—';$('accountRole').textContent=currentUser?.role||'User'}
+ if(p==='settings'){ $('accountName').textContent=currentUser?.username||'—';$('accountRole').textContent=currentUser?.role||'User';renderUserManagementAccess();if(isAdmin())loadUsers()}
  if(p==='guests')renderGuests();if(p==='expenses')renderExpenses();if(p==='events')renderEvents();if(p==='reports')renderReport();
 }
 function currentEvent(){return db.events.find(x=>String(x.id)===String(activeId))}
@@ -140,9 +156,87 @@ function evGuests(){return db.guests.filter(x=>String(x.eventId)===String(active
 function evExpenses(){return db.expenses.filter(x=>String(x.eventId)===String(activeId))}
 function refresh(){
  $('activeEvent').innerHTML=db.events.length?db.events.map(e=>`<option value="${esc(e.id)}" ${String(e.id)===String(activeId)?'selected':''}>${esc(e.name)}</option>`).join(''):'<option value="">No functions assigned</option>';
- $('addFunctionBtn').style.display=isAdmin()?'':'none';if($('addFunctionBtnSecondary'))$('addFunctionBtnSecondary').style.display=isAdmin()?'':'none';
+ if($('addFunctionBtnSecondary'))$('addFunctionBtnSecondary').style.display=isAdmin()?'':'none';
  $('addGuestBtn').style.display=canEdit()?'':'none';$('addExpenseBtn').style.display=canEdit()?'':'none';
  renderDashboard();renderEvents();renderGuests();renderExpenses();renderReport();
+}
+
+let managedUsers=[],managedFunctionAccess=[];
+function renderUserManagementAccess(){
+ const admin=isAdmin();
+ $('userAdminOnly').classList.toggle('hidden',!admin);
+ $('userNoAccess').classList.toggle('hidden',admin);
+ $('userManagementPanel').style.display=admin?'':'none';
+}
+async function loadUsers(){
+ if(!isAdmin())return;
+ $('userRows').innerHTML='<tr><td colspan="5" class="empty">Loading users…</td></tr>';
+ $('userAccessEditor').innerHTML='<div class="empty">Loading function permissions…</div>';
+ try{
+  const r=await api('adminListUsers',{token:token()});
+  if(!r.ok)throw new Error(r.error||'Unable to load users');
+  managedUsers=Array.isArray(r.users)?r.users:[];
+  managedFunctionAccess=Array.isArray(r.functionAccess)?r.functionAccess:[];
+  renderUsers();renderFunctionAccessEditor();
+ }catch(e){$('userRows').innerHTML=`<tr><td colspan="5" class="empty">${esc(e.message)}</td></tr>`;toast(e.message)}
+}
+function renderUsers(){
+ const limited=managedUsers.filter(u=>u.role==='Limited');
+ $('userRows').innerHTML=limited.map(u=>`<tr>
+  <td><b>${esc(u.username)}</b><br><small class="muted">${esc(u.userId)}</small></td>
+  <td><span class="pill ${u.active?'yes':'no'}">${u.active?'Active':'Inactive'}</span></td>
+  <td>${u.createdAt?esc(new Date(u.createdAt).toLocaleDateString()):'—'}</td>
+  <td>${u.lastLogin?esc(new Date(u.lastLogin).toLocaleString()):'Never'}</td>
+  <td><button class="small ${u.active?'danger':'secondary'}" onclick="setUserActive('${esc(u.userId)}',${!u.active})">${u.active?'Deactivate':'Activate'}</button></td>
+ </tr>`).join('')||'<tr><td colspan="5" class="empty">No Limited Users created yet.</td></tr>';
+}
+function renderFunctionAccessEditor(){
+ const limited=managedUsers.filter(u=>u.role==='Limited');
+ if(!limited.length){$('userAccessEditor').innerHTML='<div class="empty">Create a Limited User to assign function access.</div>';return}
+ if(!db.events.length){$('userAccessEditor').innerHTML='<div class="empty">Create a function before assigning access.</div>';return}
+ $('userAccessEditor').innerHTML=limited.map(u=>{
+  const controls=db.events.map(ev=>{
+   const current=managedFunctionAccess.find(a=>a.userId===u.userId&&a.functionId===String(ev.id))?.permission||'None';
+   return `<div class="field" style="min-width:180px;flex:1"><label>${esc(ev.name)}</label><select id="access_${esc(u.userId)}_${esc(ev.id)}"><option ${current==='None'?'selected':''}>None</option><option ${current==='View'?'selected':''}>View</option><option ${current==='Edit'?'selected':''}>Edit</option></select></div>`;
+  }).join('');
+  return `<div class="panel" style="background:#fafbfe"><div class="panelhead"><div><b>${esc(u.username)}</b><div class="note">${u.active?'Active account':'Inactive account'}</div></div><button class="small" onclick="saveUserAccess('${esc(u.userId)}')">Save permissions</button></div><div class="toolbar">${controls}</div></div>`;
+ }).join('');
+}
+$('createUserForm').onsubmit=async e=>{
+ e.preventDefault();if(!isAdmin())return;
+ const button=$('createUserSubmit');button.disabled=true;button.textContent='Creating…';
+ try{
+  const username=$('newUsername').value.trim(),password=$('newUserPassword').value;
+  const r=await api('adminCreateUser',{token:token(),username,password});
+  if(!r.ok)throw new Error(r.error||'Unable to create user');
+  $('createUserForm').reset();toast('Limited User created successfully');await loadUsers();
+ }catch(err){toast(err.message)}
+ finally{button.disabled=false;button.textContent='＋ Create Limited User'}
+};
+async function saveUserAccess(userId){
+ if(!isAdmin())return;
+ const u=managedUsers.find(x=>x.userId===userId);if(!u)return;
+ try{
+  for(const ev of db.events){
+   const el=$(`access_${userId}_${ev.id}`);if(!el)continue;
+   const permission=el.value;
+   const old=managedFunctionAccess.find(a=>a.userId===userId&&a.functionId===String(ev.id))?.permission||'None';
+   if(permission===old)continue;
+   const r=await api('adminSetFunctionAccess',{token:token(),userId,functionId:String(ev.id),permission});
+   if(!r.ok)throw new Error(r.error||`Unable to update ${ev.name}`);
+  }
+  toast('Function permissions saved');await loadUsers();
+ }catch(e){toast(e.message);await loadUsers()}
+}
+async function setUserActive(userId,active){
+ if(!isAdmin())return;
+ const u=managedUsers.find(x=>x.userId===userId);if(!u)return;
+ if(!confirm(`${active?'Activate':'Deactivate'} ${u.username}?`))return;
+ try{
+  const r=await api('adminSetUserActive',{token:token(),userId,active});
+  if(!r.ok)throw new Error(r.error||'Unable to update account');
+  toast(`User ${active?'activated':'deactivated'}`);await loadUsers();
+ }catch(e){toast(e.message)}
 }
 function statusClass(s){return s==='Confirmed'?'yes':s==='Declined'?'no':s==='Maybe'?'maybe':''}
 function renderDashboard(){
@@ -164,8 +258,8 @@ function renderGuests(){
  const groups=[...new Set(gs.map(g=>g.group||'General'))];$('groupFilter').innerHTML='<option value="">All groups</option>'+groups.map(g=>`<option ${group===g?'selected':''}>${esc(g)}</option>`).join('');
  const rows=gs.filter(g=>(!q||[g.name,g.phone,g.location,g.group].join(' ').toLowerCase().includes(q))&&(!f||g.status===f)&&(!group||g.group===group)&&(!physical||(g.physicalInvitationStatus||'Not Given')===physical));
  $('guestRows').innerHTML=rows.map(g=>{
-  const p=g.physicalInvitationStatus||'Not Given',can=canEdit(g.eventId);
-  const phys=can?`<button class="small ${p==='Given'?'secondary':''}" onclick="setPhysical('${esc(g.id)}','${p==='Given'?'Not Given':'Given'}')">${p==='Given'?'Mark Not Given':'Mark Given'}</button>`:`<span class="pill ${p==='Given'?'yes':'maybe'}">${p}</span>`;
+  const p=g.physicalInvitationStatus||'Not Given',can=canEdit(g.eventId),canMarkPhysical=isAdmin()||Object.prototype.hasOwnProperty.call((accessInfo.functions||{}),String(g.eventId));
+  const phys=canMarkPhysical?`<button class="small ${p==='Given'?'secondary':''}" onclick="setPhysical('${esc(g.id)}','${p==='Given'?'Not Given':'Given'}')">${p==='Given'?'Mark Not Given':'Mark Given'}</button>`:`<span class="pill ${p==='Given'?'yes':'maybe'}">${p}</span>`;
   const rsvp=isAdmin()?`<select style="min-width:105px" onchange="setRsvp('${esc(g.id)}',this.value)">${['Not Sent','Invited','Confirmed','Maybe','Declined'].map(s=>`<option ${g.status===s?'selected':''}>${s}</option>`).join('')}</select>`:`<span class="pill ${statusClass(g.status)}">${esc(g.status||'Not Sent')}</span>`;
   const actions=`${can?`<button class="secondary small" onclick="openGuestForm('${esc(g.id)}')">Edit</button>`:''}${isAdmin()&&g.phone?`<button class="secondary small" onclick="inviteWA('${esc(g.id)}')">WhatsApp</button>`:''}${isAdmin()?`<button class="danger small" onclick="deleteRecord('guest','${esc(g.id)}')">Delete</button>`:''}`;
   return `<tr><td><b>${esc(g.name)}</b><br><span class="muted">${esc(g.group||'General')}</span></td><td>${g.phone?`<a class="link" href="tel:${esc(g.phone)}">${esc(g.phone)}</a>`:'—'}</td><td>${esc(g.location||'—')} ${g.map?`<a class="link" target="_blank" rel="noopener" href="${esc(g.map)}">Map ↗</a>`:''}</td><td>${Number(g.persons||1)}</td><td>${rsvp}</td><td>${phys}<br><small class="muted">${p==='Given'?esc(g.physicalInvitationGivenDate||'')+' · '+esc(g.physicalInvitationGivenBy||''):''}</small></td><td>${actions||'—'}</td></tr>`;
