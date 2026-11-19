@@ -59,15 +59,25 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--line);
     <p class="note" id="syncStatus">Data refreshes automatically every 2 minutes. Changes are saved to Google Sheets with server-side permissions.</p>
     <div class="actions"><button class="secondary" onclick="loadAppData(true)">Refresh data now</button></div>
    </div>
+   <div class="panel">
+    <h2>Change Password</h2>
+    <p class="note">Available to every user. Use exactly 8 letters and numbers for your new password.</p>
+    <form id="changePasswordForm" class="formgrid" style="max-width:760px">
+     <div class="field"><label>CURRENT PASSWORD *</label><input id="currentPassword" type="password" autocomplete="current-password" required></div>
+     <div class="field"><label>NEW PASSWORD *</label><input id="changeNewPassword" type="password" autocomplete="new-password" required minlength="8" maxlength="8" pattern="[A-Za-z0-9]{8}" title="Exactly 8 letters and numbers"></div>
+     <div class="field"><label>CONFIRM NEW PASSWORD *</label><input id="confirmNewPassword" type="password" autocomplete="new-password" required minlength="8" maxlength="8" pattern="[A-Za-z0-9]{8}" title="Exactly 8 letters and numbers"></div>
+     <div class="wide actions" style="justify-content:flex-end"><button id="changePasswordSubmit">Change Password</button></div>
+    </form>
+   </div>
    <div class="panel" id="userManagementPanel">
     <div class="panelhead"><div><h2>User Management</h2><div class="note">Create Limited Users and assign access to individual functions.</div></div><button id="refreshUsersBtn" class="secondary small" onclick="loadUsers()">Refresh users</button></div>
     <div id="userAdminOnly">
      <form id="createUserForm" class="formgrid" style="max-width:760px">
       <div class="field"><label>USERNAME *</label><input id="newUsername" required minlength="3" maxlength="40" pattern="[A-Za-z0-9._-]+" placeholder="e.g. staff01"></div>
-      <div class="field"><label>TEMPORARY PASSWORD *</label><input id="newUserPassword" type="password" required minlength="12" placeholder="At least 12 characters"></div>
+      <div class="field"><label>TEMPORARY PASSWORD *</label><input id="newUserPassword" type="password" required minlength="8" maxlength="8" pattern="[A-Za-z0-9]{8}" title="Exactly 8 letters and numbers" placeholder="8 letters/numbers"></div>
       <div class="wide actions" style="justify-content:flex-end;margin-bottom:16px"><button id="createUserSubmit">＋ Create Limited User</button></div>
      </form>
-     <div class="note" style="margin:8px 0 14px">New users must be given their password securely. Minimum password length: 12 characters.</div>
+     <div class="note" style="margin:8px 0 14px">New users must be given their password securely. Password must be exactly 8 letters and numbers (no spaces or symbols).</div>
      <div class="tablewrap"><table style="min-width:850px"><thead><tr><th>User</th><th>Status</th><th>Created</th><th>Last login</th><th>Account action</th></tr></thead><tbody id="userRows"><tr><td colspan="5" class="empty">Loading users…</td></tr></tbody></table></div>
      <div style="margin-top:22px"><h2>Function Access</h2><p class="note">Choose View, Edit or None for each Limited User and function. View users can still mark physical invitations Given / Not Given.</p><div id="userAccessEditor"></div></div>
     </div>
@@ -202,6 +212,18 @@ function renderFunctionAccessEditor(){
   return `<div class="panel" style="background:#fafbfe"><div class="panelhead"><div><b>${esc(u.username)}</b><div class="note">${u.active?'Active account':'Inactive account'}</div></div><button class="small" onclick="saveUserAccess('${esc(u.userId)}')">Save permissions</button></div><div class="toolbar">${controls}</div></div>`;
  }).join('');
 }
+$('changePasswordForm').onsubmit=async e=>{
+ e.preventDefault();
+ const currentPassword=$('currentPassword').value,newPassword=$('changeNewPassword').value,confirmPassword=$('confirmNewPassword').value;
+ if(!/^[A-Za-z0-9]{8}$/.test(newPassword)){toast('New password must be exactly 8 letters and numbers.');return}
+ if(newPassword!==confirmPassword){toast('New passwords do not match.');return}
+ const button=$('changePasswordSubmit');button.disabled=true;button.textContent='Updating…';
+ try{
+  const r=await api('changePassword',{token:token(),currentPassword,newPassword});
+  if(!r.ok)throw new Error(r.error||'Unable to change password');
+  $('changePasswordForm').reset();toast('Password changed successfully. Use the new password next time you log in.');
+ }catch(err){toast(err.message)}finally{button.disabled=false;button.textContent='Change Password'}
+};
 $('createUserForm').onsubmit=async e=>{
  e.preventDefault();if(!isAdmin())return;
  const button=$('createUserSubmit');button.disabled=true;button.textContent='Creating…';
@@ -298,10 +320,30 @@ function openFunctionForm(id=''){
  <div class="field wide"><label>NOTES</label><textarea id="fNotes">${esc(x.notes||'')}</textarea></div></div><div class="formactions"><button type="button" class="secondary" onclick="closeModal()">Cancel</button><button>Save Function</button></div></form>`);
  $('recordForm').onsubmit=async e=>{e.preventDefault();await saveRecord('saveFunction',{id:x.id||'',name:$('fName').value,type:$('fType').value,date:$('fDate').value,time:$('fTime').value,venue:$('fVenue').value,location:$('fLocation').value,map:$('fMap').value,contact:$('fContact').value,phone:$('fPhone').value,budget:$('fBudget').value,notes:$('fNotes').value})};
 }
+async function selectGuestContact(){
+ if(!('contacts' in navigator) || typeof navigator.contacts.select!=='function'){
+  toast('Contact import is not supported in this browser. Please enter the name and phone manually.');return;
+ }
+ try{
+  const contacts=await navigator.contacts.select(['name','tel'],{multiple:false});
+  if(!contacts||!contacts.length)return;
+  const c=contacts[0];
+  const name=Array.isArray(c.name)?c.name[0]:c.name;
+  const phone=Array.isArray(c.tel)?c.tel[0]:c.tel;
+  if(name)$('gName').value=name;
+  if(phone)$('gPhone').value=phone;
+  toast('Contact details added. Please verify before saving.');
+ }catch(err){
+  if(err&&err.name==='AbortError')return;
+  toast('Unable to access contacts. You can enter the details manually.');
+ }
+}
+
 function openGuestForm(id=''){
  const x=db.guests.find(v=>String(v.id)===String(id))||{};if(!canEdit(x.eventId||activeId))return;
  openModal(id?'Edit Guest':'Add Guest',`<form id="recordForm"><div class="formgrid">
  <div class="field wide"><label>FUNCTION *</label><select id="gEvent">${db.events.map(e=>`<option value="${esc(e.id)}" ${String(e.id)===String(x.eventId||activeId)?'selected':''}>${esc(e.name)}</option>`).join('')}</select></div>
+ <div class="field wide"><button type="button" class="secondary" onclick="selectGuestContact()">☷ Choose from Mobile Contacts</button><div class="note">On supported mobile browsers, choose a contact to fill in the guest name and phone number.</div></div>
  ${field('GUEST NAME *','gName',x.name||'')}${field('PHONE','gPhone',x.phone||'','tel')}
  ${field('LOCATION / ADDRESS','gLocation',x.location||'')}${field('MAP LINK','gMap',x.map||'','url')}
  ${field('NUMBER OF PERSONS','gPersons',x.persons||1,'number')}${field('RELATIONSHIP / GROUP','gGroup',x.group||'')}
