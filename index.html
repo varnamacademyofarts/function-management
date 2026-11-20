@@ -52,6 +52,24 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--line);
 }
 @media(max-width:380px){.mobile-nav .navbtn .navtxt{font-size:8px}.top h1{font-size:18px}#activeEvent{max-width:42vw}}
 
+
+/* Collapsible guest directory */
+.guest-group{border:1px solid var(--line);border-radius:12px;background:#fff;margin:0 0 10px;overflow:hidden}
+.guest-group-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;background:#fff;color:var(--ink);padding:15px 14px;border-radius:0}
+.guest-group-toggle:hover{background:#f8f9fd}
+.guest-group-title{display:flex;flex-direction:column;gap:3px}.guest-group-title strong{font-size:15px}.guest-group-title small{font-size:11px;color:var(--muted);font-weight:500}
+.guest-group-chevron{font-size:22px;color:var(--muted)}
+.guest-group-list{border-top:1px solid var(--line)}
+.guest-compact-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid #eef1f6}
+.guest-compact-row:last-child{border-bottom:0}.guest-pick{flex:0 0 25px;display:flex;justify-content:center}
+.guest-open{flex:1;min-width:0;text-align:left;background:transparent;color:var(--ink);padding:4px 0;border-radius:0}
+.guest-open strong,.guest-open small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.guest-open strong{font-size:13px}.guest-open small{font-size:11px;color:var(--muted);font-weight:500;margin-top:3px}
+.guest-detail-list{display:grid;gap:0}.guest-detail-row{display:flex;justify-content:space-between;gap:16px;padding:12px 2px;border-bottom:1px solid var(--line)}
+.guest-detail-row span{color:var(--muted);font-size:12px}.guest-detail-row strong{text-align:right;font-size:13px;font-weight:600;max-width:65%;overflow-wrap:anywhere}
+.guest-detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+@media(max-width:760px){.guest-group-toggle{padding:14px 12px}.guest-compact-row{padding:10px 8px;gap:7px}.guest-compact-row .pill{font-size:10px;padding:4px 6px}}
+
 </style></head>
 <body>
 <section id="login">
@@ -330,23 +348,41 @@ function renderEvents(){
  $('eventList').innerHTML=db.events.map(e=>`<div class="eventtile"><div><strong>${esc(e.name)} <span class="pill">${esc(e.type||'Event')}</span></strong><small>${esc(e.date||'Date not set')} · ${esc(e.venue||'Venue not set')}</small></div><div class="actions"><button class="secondary small" onclick="selectEvent('${esc(e.id)}')">Open</button>${isAdmin()?`<button class="secondary small" onclick="openFunctionForm('${esc(e.id)}')">Edit</button><button class="danger small" onclick="deleteRecord('function','${esc(e.id)}')">Delete</button>`:''}</div></div>`).join('')||'<div class="empty">No functions assigned. Contact your administrator.</div>';
 }
 function selectEvent(id){activeId=id;refresh();go('dashboard')}
+const expandedGuestGroups=new Set();
+function getFilteredGuests(){
+ const q=($('guestSearch')?.value||'').toLowerCase(),f=$('guestFilter')?.value||'',group=$('groupFilter')?.value||'',physical=$('physicalFilter')?.value||'';
+ return evGuests().filter(g=>(!q||[g.name,g.phone,g.location,g.group].join(' ').toLowerCase().includes(q))&&(!f||g.status===f)&&(!group||(g.group||'General')===group)&&(!physical||(g.physicalInvitationStatus||'Not Given')===physical));
+}
+function toggleGuestGroup(group){if(expandedGuestGroups.has(group))expandedGuestGroups.delete(group);else expandedGuestGroups.add(group);renderGuests()}
+function openGuestDetails(id){
+ const g=db.guests.find(x=>String(x.id)===String(id));if(!g)return;
+ const p=g.physicalInvitationStatus||'Not Given',can=canEdit(g.eventId),canMarkPhysical=isAdmin()||Object.prototype.hasOwnProperty.call((accessInfo.functions||{}),String(g.eventId));
+ const phone=g.phone?'<a class="link" href="tel:'+esc(g.phone)+'">'+esc(g.phone)+'</a>':'—',map=g.map?'<a class="link" target="_blank" rel="noopener" href="'+esc(g.map)+'">Open map ↗</a>':'—';
+ const rows=[['Phone',phone],['Location',esc(g.location||'—')],['Map',map],['Persons',String(Number(g.persons||1))],['Group',esc(g.group||'General')],['RSVP',esc(g.status||'Not Sent')],['Physical invitation',esc(p)],['Notes',esc(g.notes||'—')]];
+ let body='<div class="guest-detail-list">'+rows.map(([k,v])=>'<div class="guest-detail-row"><span>'+k+'</span><strong>'+v+'</strong></div>').join('');
+ if(p==='Given')body+='<p class="note">Given on '+esc(g.physicalInvitationGivenDate||'—')+' · '+esc(g.physicalInvitationGivenBy||'')+'</p>';
+ body+='<div class="guest-detail-actions">'+(can?'<button onclick="closeModal();openGuestForm(\''+esc(g.id)+'\')">Edit Guest</button>':'')+(canMarkPhysical?'<button class="secondary" onclick="setPhysical(\''+esc(g.id)+'\',\''+(p==='Given'?'Not Given':'Given')+'\');closeModal()">'+(p==='Given'?'Mark Not Given':'Mark Given')+'</button>':'')+(isAdmin()&&g.phone?'<button class="secondary" onclick="inviteWA(\''+esc(g.id)+'\')">WhatsApp</button>':'')+(isAdmin()?'<button class="danger" onclick="closeModal();deleteRecord(\'guest\',\''+esc(g.id)+'\')">Delete</button>':'')+'</div></div>';
+ openModal(esc(g.name||'Guest details'),body);
+}
 function renderGuests(){
- if(!$('guestRows'))return;const q=($('guestSearch')?.value||'').toLowerCase(),f=$('guestFilter')?.value||'',group=$('groupFilter')?.value||'',physical=$('physicalFilter')?.value||'',gs=evGuests();
- const given=gs.filter(g=>(g.physicalInvitationStatus||'Not Given')==='Given').length;
+ if(!$('guestRows'))return;
+ const gs=evGuests(),given=gs.filter(g=>(g.physicalInvitationStatus||'Not Given')==='Given').length;
  $('physicalTotal').textContent=gs.length;$('physicalGiven').textContent=given;$('physicalPending').textContent=gs.length-given;
- const groups=[...new Set(gs.map(g=>g.group||'General'))];$('groupFilter').innerHTML='<option value="">All groups</option>'+groups.map(g=>`<option ${group===g?'selected':''}>${esc(g)}</option>`).join('');
- const rows=gs.filter(g=>(!q||[g.name,g.phone,g.location,g.group].join(' ').toLowerCase().includes(q))&&(!f||g.status===f)&&(!group||g.group===group)&&(!physical||(g.physicalInvitationStatus||'Not Given')===physical));
- $('guestRows').innerHTML=rows.map(g=>{
-  const p=g.physicalInvitationStatus||'Not Given',can=canEdit(g.eventId),canMarkPhysical=isAdmin()||Object.prototype.hasOwnProperty.call((accessInfo.functions||{}),String(g.eventId));
-  const pick=canMarkPhysical?`<input type="checkbox" style="width:auto" ${selectedGuestIds.has(String(g.id))?'checked':''} onchange="toggleGuestSelection('${esc(g.id)}',this.checked)">`:'—';
-  const phys=canMarkPhysical?`<button class="small ${p==='Given'?'secondary':''}" onclick="setPhysical('${esc(g.id)}','${p==='Given'?'Not Given':'Given'}')">${p==='Given'?'Mark Not Given':'Mark Given'}</button>`:`<span class="pill ${p==='Given'?'yes':'maybe'}">${p}</span>`;
-  const rsvp=isAdmin()?`<select style="min-width:105px" onchange="setRsvp('${esc(g.id)}',this.value)">${['Not Sent','Invited','Confirmed','Maybe','Declined'].map(s=>`<option ${g.status===s?'selected':''}>${s}</option>`).join('')}</select>`:`<span class="pill ${statusClass(g.status)}">${esc(g.status||'Not Sent')}</span>`;
-  const actions=`${can?`<button class="secondary small" onclick="openGuestForm('${esc(g.id)}')">Edit</button>`:''}${isAdmin()&&g.phone?`<button class="secondary small" onclick="inviteWA('${esc(g.id)}')">WhatsApp</button>`:''}${isAdmin()?`<button class="danger small" onclick="deleteRecord('guest','${esc(g.id)}')">Delete</button>`:''}`;
-  return `<tr><td>${pick}</td><td><b>${esc(g.name)}</b><br><span class="muted">${esc(g.group||'General')}</span></td><td>${g.phone?`<a class="link" href="tel:${esc(g.phone)}">${esc(g.phone)}</a>`:'—'}</td><td>${esc(g.location||'—')} ${g.map?`<a class="link" target="_blank" rel="noopener" href="${esc(g.map)}">Map ↗</a>`:''}</td><td>${Number(g.persons||1)}</td><td>${rsvp}</td><td>${phys}<br><small class="muted">${p==='Given'?esc(g.physicalInvitationGivenDate||'')+' · '+esc(g.physicalInvitationGivenBy||''):''}</small></td><td>${actions||'—'}</td></tr>`;
- }).join('')||'<tr><td colspan="8" class="empty">No matching guests.</td></tr>';
- const visibleIds=rows.filter(g=>isAdmin()||Object.prototype.hasOwnProperty.call((accessInfo.functions||{}),String(g.eventId))).map(g=>String(g.id));
- const selectedVisible=visibleIds.filter(id=>selectedGuestIds.has(id)).length;
- if($('selectAllVisibleGuests')){$('selectAllVisibleGuests').checked=visibleIds.length>0&&selectedVisible===visibleIds.length;$('selectAllVisibleGuests').indeterminate=selectedVisible>0&&selectedVisible<visibleIds.length;}
+ const groups=[...new Set(gs.map(g=>g.group||'General'))].sort((a,b)=>a.localeCompare(b)),selectedGroup=$('groupFilter').value||'';
+ $('groupFilter').innerHTML='<option value="">All groups</option>'+groups.map(g=>'<option value="'+esc(g)+'" '+(selectedGroup===g?'selected':'')+'>'+esc(g)+'</option>').join('');
+ const rows=getFilteredGuests(),grouped=new Map();rows.forEach(g=>{const key=g.group||'General';if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(g)});
+ $('guestRows').innerHTML=[...grouped.entries()].map(([group,items])=>{
+  const open=expandedGuestGroups.has(group),groupGiven=items.filter(g=>(g.physicalInvitationStatus||'Not Given')==='Given').length;
+  const head='<button type="button" class="guest-group-toggle" aria-expanded="'+open+'" onclick="toggleGuestGroup(\''+esc(group)+'\')"><span class="guest-group-title"><strong>'+esc(group)+'</strong><small>'+items.length+' guests · '+groupGiven+' invitations given</small></span><span class="guest-group-chevron">'+(open?'⌃':'⌄')+'</span></button>';
+  const list=open?'<div class="guest-group-list">'+items.map(g=>{
+   const p=g.physicalInvitationStatus||'Not Given',mark=isAdmin()||Object.prototype.hasOwnProperty.call((accessInfo.functions||{}),String(g.eventId));
+   const pick=mark?'<input aria-label="Select guest" type="checkbox" style="width:auto" '+(selectedGuestIds.has(String(g.id))?'checked':'')+' onclick="event.stopPropagation()" onchange="toggleGuestSelection(\''+esc(g.id)+'\',this.checked)">':'';
+   return '<div class="guest-compact-row"><div class="guest-pick">'+pick+'</div><button type="button" class="guest-open" onclick="openGuestDetails(\''+esc(g.id)+'\')"><strong>'+esc(g.name||'Unnamed guest')+'</strong><small>'+esc(g.phone||'No phone')+' · '+Number(g.persons||1)+' person(s)</small></button><span class="pill '+(p==='Given'?'yes':'maybe')+'">'+esc(p)+'</span></div>';
+  }).join('')+'</div>':'';
+  return '<div class="guest-group">'+head+list+'</div>';
+ }).join('')||'<div class="empty">No matching guests.</div>';
+ const visibleIds=rows.filter(g=>isAdmin()||Object.prototype.hasOwnProperty.call((accessInfo.functions||{}),String(g.eventId))).map(g=>String(g.id)),selectedVisible=visibleIds.filter(id=>selectedGuestIds.has(id)).length;
+ if($('selectAllVisibleGuests')){$('selectAllVisibleGuests').checked=visibleIds.length>0&&selectedVisible===visibleIds.length;$('selectAllVisibleGuests').indeterminate=selectedVisible>0&&selectedVisible<visibleIds.length}
  if($('bulkSelectionCount'))$('bulkSelectionCount').textContent=selectedGuestIds.size+' selected';
 }
 function toggleGuestSelection(id,checked){if(checked)selectedGuestIds.add(String(id));else selectedGuestIds.delete(String(id));renderGuests()}
