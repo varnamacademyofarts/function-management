@@ -26,10 +26,13 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--line);
  .grid2{grid-template-columns:1fr;gap:8px}.toolbar{gap:7px}.toolbar input,.toolbar select{max-width:none;min-width:0;flex:1 1 145px}.toolbar button{flex:1 1 auto}
  #page-guests .cards,#page-expenses .cards{grid-template-columns:repeat(3,minmax(0,1fr))!important}
  #page-guests .cards .card,#page-expenses .cards .card{padding:9px}#page-guests .metric,#page-expenses .metric{font-size:19px}
- .tablewrap{overflow:visible}.tablewrap table{min-width:0;width:100%;border-collapse:separate;border-spacing:0}.tablewrap thead{display:none}
- .tablewrap tbody{display:grid;gap:10px}.tablewrap tbody tr{display:block;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 11px;box-shadow:0 2px 8px #18243b08}
- .tablewrap tbody td{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 2px;border-bottom:1px solid #eef1f6;font-size:12px;min-width:0;overflow-wrap:anywhere}
- .tablewrap tbody td:last-child{border-bottom:0}
+ #page-guests .tablewrap,#page-expenses .tablewrap{overflow:visible}
+ #page-guests .tablewrap table,#page-expenses .tablewrap table{min-width:0;width:100%;border-collapse:separate;border-spacing:0}
+ #page-guests .tablewrap thead,#page-expenses .tablewrap thead{display:none}
+ #page-guests .tablewrap tbody,#page-expenses .tablewrap tbody{display:grid;gap:10px}
+ #page-guests .tablewrap tbody tr,#page-expenses .tablewrap tbody tr{display:block;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 11px;box-shadow:0 2px 8px #18243b08}
+ #page-guests .tablewrap tbody td,#page-expenses .tablewrap tbody td{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 2px;border-bottom:1px solid #eef1f6;font-size:12px;min-width:0;overflow-wrap:anywhere}
+ #page-guests .tablewrap tbody td:last-child,#page-expenses .tablewrap tbody td:last-child{border-bottom:0}
  #guestRows tr td:first-child{justify-content:flex-start}#guestRows tr td:first-child:after{content:"Select guest";color:var(--muted);font-size:11px;margin-left:7px}
  #guestRows tr td:nth-child(2){display:block;font-size:14px}
  #guestRows tr td:nth-child(n+3):before{font-size:10px;font-weight:750;letter-spacing:.35px;text-transform:uppercase;color:var(--muted);flex:0 0 86px}
