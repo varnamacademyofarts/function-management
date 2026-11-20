@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Function Management System</title>
+<title>Function Manager</title>
+<link rel="manifest" href="./manifest.json"><meta name="theme-color" content="#18243b">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Function Manager">
+<link rel="icon" href="./icons/icon-192.svg" type="image/svg+xml">
 <style>
 :root{--navy:#18243b;--blue:#3457d5;--bg:#f4f6fb;--ink:#20283a;--muted:#738096;--line:#e5e9f1;--green:#16845b;--red:#c74b55;--gold:#bd8730}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,Arial,sans-serif}
@@ -12,6 +16,42 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--line);
 #app{display:none;min-height:100vh}.sidebar{position:fixed;inset:0 auto 0 0;width:235px;background:var(--navy);color:white;padding:24px 16px;display:flex;flex-direction:column;z-index:3}.brand{font-weight:800;font-size:18px;padding:4px 10px 28px}.brand span{display:block;color:#aebce4;font-size:11px;font-weight:500;letter-spacing:1.5px;margin-top:4px}.navbtn{width:100%;text-align:left;background:transparent;color:#c4cde0;margin:3px 0;padding:12px;border-radius:9px}.navbtn.active,.navbtn:hover{background:#ffffff19;color:white}.sidebar .bottom{margin-top:auto}.main{margin-left:235px;padding:28px;max-width:1600px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:24px}.top h1{font-size:25px;margin:0}.sub{color:var(--muted);margin-top:3px}.actions{display:flex;gap:8px;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.card,.panel{background:white;border:1px solid var(--line);border-radius:14px;padding:17px}.metric{font-size:27px;font-weight:800;margin-top:7px}.metric-label{color:var(--muted);font-size:12px;font-weight:650}.panel{margin-bottom:16px}.panelhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.panel h2{font-size:16px;margin:0}.muted{color:var(--muted)}.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:15px}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px}.toolbar input{max-width:300px}.toolbar select{max-width:190px}table{border-collapse:collapse;width:100%;min-width:700px}th,td{text-align:left;padding:11px 9px;border-bottom:1px solid var(--line);vertical-align:middle}th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#77839a;background:#fafbfe}td{font-size:13px}.tablewrap{overflow:auto}.pill{display:inline-block;border-radius:20px;padding:4px 8px;font-size:11px;font-weight:700;background:#edf1ff;color:#3f57b5}.pill.yes{background:#e6f6ef;color:#14734e}.pill.no{background:#fff0f0;color:#b33b45}.pill.maybe{background:#fff6e5;color:#9b6a17}.empty{text-align:center;color:var(--muted);padding:28px}.hidden{display:none!important}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 13px}.wide{grid-column:1/-1}.modal{position:fixed;inset:0;background:#101a2d88;display:none;place-items:center;padding:18px;z-index:10}.modal.show{display:grid}.modalbox{width:min(720px,96vw);max-height:92vh;overflow:auto;background:white;border-radius:16px;padding:22px}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px}.modalhead h2{margin:0}.close{background:#edf0f7;color:#35415a;padding:6px 10px}.formactions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.eventtile{border:1px solid var(--line);padding:14px;border-radius:12px;margin-bottom:9px;display:flex;justify-content:space-between;gap:10px;align-items:center}.eventtile strong{display:block}.eventtile small{color:var(--muted)}.bar{height:8px;border-radius:8px;background:#edf0f6;overflow:hidden}.bar>i{display:block;height:100%;background:var(--blue)}.note{font-size:12px;color:var(--muted)}.toast{position:fixed;bottom:20px;right:20px;background:#18243b;color:white;padding:12px 16px;border-radius:10px;display:none;z-index:20}.processing{position:fixed;inset:0;background:#101a2d55;display:none;place-items:center;z-index:30;padding:18px}.processing.show{display:grid}.processingbox{display:flex;align-items:center;gap:13px;background:#fff;padding:18px 22px;border-radius:14px;box-shadow:0 12px 40px #07132b33;font-weight:700}.spinner{width:22px;height:22px;border:3px solid #dce3f7;border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}button:disabled{opacity:.6;cursor:wait}.link{color:var(--blue);text-decoration:none}.right{text-align:right}
 @media(max-width:900px){.sidebar{width:68px;padding:18px 8px}.brand{font-size:0;padding:5px}.brand:before{content:"FM";font-size:17px}.brand span,.navtxt{display:none}.navbtn{text-align:center;font-size:18px;padding:12px 4px}.main{margin-left:68px;padding:18px}.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
 @media(max-width:560px){.main{padding:13px}.top{align-items:flex-start;flex-direction:column}.cards{gap:8px}.card{padding:12px}.metric{font-size:22px}.formgrid{grid-template-columns:1fr}.wide{grid-column:auto}.actions button{flex:1}}
+
+.mobile-nav{display:none}.install-app{display:none}
+@media(max-width:760px){
+ .sidebar{display:none}.main{margin-left:0;padding:14px 12px 92px;max-width:none}
+ .top{position:sticky;top:0;z-index:2;background:var(--bg);padding:8px 0 12px;margin:0 0 12px;align-items:center;flex-direction:row}
+ .top h1{font-size:21px}.top .sub{font-size:11px}#activeEvent{min-width:125px!important;max-width:46vw;font-size:12px;padding:9px 7px}
+ .cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.card,.panel{padding:12px;border-radius:12px}.metric{font-size:22px}.metric-label{font-size:10px}
+ .grid2{grid-template-columns:1fr;gap:8px}.toolbar{gap:7px}.toolbar input,.toolbar select{max-width:none;min-width:0;flex:1 1 145px}.toolbar button{flex:1 1 auto}
+ #page-guests .cards,#page-expenses .cards{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ #page-guests .cards .card,#page-expenses .cards .card{padding:9px}#page-guests .metric,#page-expenses .metric{font-size:19px}
+ #page-guests .tablewrap,#page-expenses .tablewrap{overflow:visible}
+ #page-guests .tablewrap table,#page-expenses .tablewrap table{min-width:0;width:100%;border-collapse:separate;border-spacing:0}
+ #page-guests .tablewrap thead,#page-expenses .tablewrap thead{display:none}
+ #page-guests .tablewrap tbody,#page-expenses .tablewrap tbody{display:grid;gap:10px}
+ #page-guests .tablewrap tbody tr,#page-expenses .tablewrap tbody tr{display:block;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 11px;box-shadow:0 2px 8px #18243b08}
+ #page-guests .tablewrap tbody td,#page-expenses .tablewrap tbody td{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 2px;border-bottom:1px solid #eef1f6;font-size:12px;min-width:0;overflow-wrap:anywhere}
+ #page-guests .tablewrap tbody td:last-child,#page-expenses .tablewrap tbody td:last-child{border-bottom:0}
+ #guestRows tr td:first-child{justify-content:flex-start}#guestRows tr td:first-child:after{content:"Select guest";color:var(--muted);font-size:11px;margin-left:7px}
+ #guestRows tr td:nth-child(2){display:block;font-size:14px}
+ #guestRows tr td:nth-child(n+3):before{font-size:10px;font-weight:750;letter-spacing:.35px;text-transform:uppercase;color:var(--muted);flex:0 0 86px}
+ #guestRows tr td:nth-child(3):before{content:"Phone"}#guestRows tr td:nth-child(4):before{content:"Location"}#guestRows tr td:nth-child(5):before{content:"Persons"}#guestRows tr td:nth-child(6):before{content:"RSVP"}#guestRows tr td:nth-child(7):before{content:"Physical invite"}
+ #guestRows tr td:nth-child(8){display:block;padding-top:10px}#guestRows tr td:nth-child(8):before{content:"Actions";display:block;margin-bottom:7px}#guestRows tr td:nth-child(8) button{margin:2px 4px 2px 0}
+ #expenseRows tr td:before{font-size:10px;font-weight:750;letter-spacing:.35px;text-transform:uppercase;color:var(--muted);flex:0 0 105px}
+ #expenseRows tr td:nth-child(1):before{content:"Date"}#expenseRows tr td:nth-child(2):before{content:"Category"}#expenseRows tr td:nth-child(3):before{content:"Description"}#expenseRows tr td:nth-child(4):before{content:"Amount"}
+ #expenseRows tr td:nth-child(5){display:block;padding-top:10px}#expenseRows tr td:nth-child(5):before{content:"Actions";display:block;margin-bottom:7px}
+ .tablewrap tbody td[colspan]{display:block;text-align:center}.tablewrap tbody td[colspan]:before{content:none!important}
+ .eventtile{align-items:flex-start;flex-direction:column}.eventtile .actions{width:100%}.eventtile .actions button{flex:1}
+ .modal{padding:8px}.modalbox{width:100%;max-height:94vh;padding:16px}.formgrid{grid-template-columns:1fr}.wide{grid-column:auto}
+ .formactions{position:sticky;bottom:-16px;background:#fff;padding:12px 0 4px}
+ .mobile-nav{position:fixed;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;inset:auto 0 0;z-index:8;padding:7px 5px max(7px,env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line);box-shadow:0 -5px 20px #18243b12}
+ .mobile-nav .navbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;margin:0;padding:5px 1px;border-radius:8px;color:#66738a;font-size:18px;line-height:1.1;min-width:0}
+ .mobile-nav .navbtn .navtxt{display:block;font-size:9px;white-space:nowrap}.mobile-nav .navbtn.active{background:#edf1ff;color:var(--blue)}
+ .install-app{display:inline-flex;padding:8px 10px;font-size:12px;white-space:nowrap}
+}
+@media(max-width:380px){.mobile-nav .navbtn .navtxt{font-size:8px}.top h1{font-size:18px}#activeEvent{max-width:42vw}}
+
 </style></head>
 <body>
 <section id="login">
@@ -29,8 +69,16 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--line);
   <button class="navbtn" data-page="reports">▤ <span class="navtxt">Reports & Export</span></button>
   <div class="bottom"><button class="navbtn" data-page="settings">⚙ <span class="navtxt">Settings</span></button><button class="navbtn" id="logout">↪ <span class="navtxt">Logout</span></button></div>
  </aside>
- <main class="main">
-  <div class="top"><div><h1 id="pageTitle">Dashboard</h1><div class="sub" id="pageSub">Your function at a glance</div></div><div class="actions"><select id="activeEvent" style="min-width:190px"></select></div></div>
+ <nav class="mobile-nav" id="mobileNav" aria-label="Primary navigation">
+<button class="navbtn active" data-page="dashboard" aria-label="Dashboard">⌂ <span class="navtxt">Home</span></button>
+<button class="navbtn" data-page="events" aria-label="Functions">▣ <span class="navtxt">Events</span></button>
+<button class="navbtn" data-page="guests" aria-label="Guests">♙ <span class="navtxt">Guests</span></button>
+<button class="navbtn" data-page="expenses" aria-label="Expenses">₹ <span class="navtxt">Expenses</span></button>
+<button class="navbtn" data-page="reports" aria-label="Reports">▤ <span class="navtxt">Reports</span></button>
+<button class="navbtn" data-page="settings" aria-label="Settings">⚙ <span class="navtxt">Settings</span></button>
+</nav>
+<main class="main">
+  <div class="top"><div><h1 id="pageTitle">Dashboard</h1><div class="sub" id="pageSub">Your function at a glance</div></div><div class="actions"><button id="installAppBtn" class="secondary install-app" type="button">＋ Install</button><select id="activeEvent" style="min-width:190px"></select></div></div>
   <section id="page-dashboard">
    <div class="cards">
     <div class="card"><div class="metric-label">TOTAL INVITED</div><div class="metric" id="mInvited">0</div><div class="note">People across guest list</div></div>
@@ -59,7 +107,7 @@ input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--line);
     <div class="eventtile"><div><strong>Signed-in account</strong><small id="accountName">—</small></div><span class="pill yes" id="accountRole">—</span></div>
     <div class="eventtile"><div><strong>Data source</strong><small>Google Sheets · Server-side login · Six-hour session</small></div><span class="pill yes">Connected</span></div>
     <p class="note" id="syncStatus">Data refreshes automatically every 2 minutes. Changes are saved to Google Sheets with server-side permissions.</p>
-    <div class="actions"><button class="secondary" onclick="loadAppData(true)">Refresh data now</button></div>
+    <div class="actions"><button class="secondary" onclick="loadAppData(true)">Refresh data now</button><button class="danger" type="button" onclick="$('logout').click()">Log out</button></div>
    </div>
    <div class="panel">
     <h2>Change Password</h2>
@@ -421,4 +469,14 @@ async function showPublicLocationForm(tok,endpoint){
  $('login').style.display='none';$('app').style.display='none';$('publicLocation').style.display='grid';
  $('publicLocationForm').onsubmit=async ev=>{ev.preventDefault();const mapLink=$('responseMap').value.trim(),address=$('responseAddress').value.trim();if(!/^https?:\/\//i.test(mapLink)){toast('Enter a valid map link');return}const b=ev.target.querySelector('button');b.disabled=true;b.textContent='Submitting…';try{if(!endpoint)throw new Error('Location form is not connected. Contact the organiser.');const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'location',token:tok,mapLink,address})});const out=await r.json();if(!out.ok)throw new Error(out.error||'Unable to save location');$('publicLocationForm').style.display='none';$('locationResult').textContent='Thank you! Your location has been submitted successfully.'}catch(err){$('locationResult').textContent=err.message;b.disabled=false;b.textContent='Submit location'}}
 }
+
+let deferredInstallPrompt=null;
+const installButton=$('installAppBtn');
+window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;if(installButton)installButton.style.display='inline-flex';});
+window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;if(installButton)installButton.style.display='none';toast('Function Manager installed successfully');});
+if(installButton)installButton.addEventListener('click',async()=>{
+ if(!deferredInstallPrompt){toast('Use your browser menu and choose Install app or Add to Home screen.');return;}
+ deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;installButton.style.display='none';
+});
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js',{scope:'./'}).catch(err=>console.warn('Service worker registration failed:',err)));
 </script></body></html>
